@@ -57,6 +57,7 @@ public class OpClaimChunkCommand extends AsyncCommandBase {
                             return;
                         }
                         var chunkInfo = ClaimManager.getInstance().claimChunkByRawCoords(player.getWorld().getName(), (int) player.getPosition().getX(), (int) player.getPosition().getZ(), party, player);
+                        player.sendMessage(CommandMessages.CLAIMED);
                     }
                 }, world);
             } else {

@@ -1,12 +1,14 @@
-package com.buuz135.simpleclaims.commands.subcommand.chunk;
+package com.buuz135.simpleclaims.commands.subcommand.party;
 
 import com.buuz135.simpleclaims.claim.ClaimManager;
-import com.buuz135.simpleclaims.claim.tracking.ModifiedTracking;
 import com.buuz135.simpleclaims.commands.CommandMessages;
 import com.hypixel.hytale.component.Ref;
 import com.hypixel.hytale.component.Store;
+import com.hypixel.hytale.protocol.GameMode;
 import com.hypixel.hytale.server.core.command.system.CommandContext;
 import com.hypixel.hytale.server.core.command.system.CommandSender;
+import com.hypixel.hytale.server.core.command.system.arguments.system.RequiredArg;
+import com.hypixel.hytale.server.core.command.system.arguments.types.ArgTypes;
 import com.hypixel.hytale.server.core.command.system.basecommands.AsyncCommandBase;
 import com.hypixel.hytale.server.core.entity.entities.Player;
 import com.hypixel.hytale.server.core.universe.PlayerRef;
@@ -14,15 +16,15 @@ import com.hypixel.hytale.server.core.universe.world.World;
 import com.hypixel.hytale.server.core.universe.world.storage.EntityStore;
 import org.checkerframework.checker.nullness.compatqual.NonNullDecl;
 
-import java.time.LocalDateTime;
 import java.util.concurrent.CompletableFuture;
 
 import static com.hypixel.hytale.server.core.command.commands.player.inventory.InventorySeeCommand.MESSAGE_COMMANDS_ERRORS_PLAYER_NOT_IN_WORLD;
 
-public class ClaimChunkCommand extends AsyncCommandBase {
+public class PartyAcceptCommand extends AsyncCommandBase {
 
-    public ClaimChunkCommand() {
-        super("claim", "Claims the chunk where you are");
+    public PartyAcceptCommand() {
+        super("invite-accept", "Accepts your most recent party invite");
+        this.setPermissionGroup(GameMode.Adventure);
     }
 
     @NonNullDecl
@@ -38,21 +40,21 @@ public class ClaimChunkCommand extends AsyncCommandBase {
                     PlayerRef playerRefComponent = store.getComponent(ref, PlayerRef.getComponentType());
                     if (playerRefComponent != null) {
                         var party = ClaimManager.getInstance().getPartyFromPlayer(player);
-                        if (party == null) {
-                            party = ClaimManager.getInstance().createParty(player);
-                            player.sendMessage(CommandMessages.PARTY_CREATED);
-                        }
-                        var chunk = ClaimManager.getInstance().getChunkRawCoords(player.getWorld().getName(), (int) player.getPosition().getX(), (int) player.getPosition().getZ());
-                        if (chunk != null) {
-                            player.sendMessage(chunk.getPartyOwner().equals(party.getId()) ? CommandMessages.ALREADY_CLAIMED_BY_YOU : CommandMessages.ALREADY_CLAIMED_BY_ANOTHER_PLAYER);
+                        if (party != null) {
+                            player.sendMessage(CommandMessages.IN_A_PARTY);
                             return;
                         }
-                        if (!ClaimManager.getInstance().hasEnoughClaimsLeft(party)) {
-                            player.sendMessage(CommandMessages.NOT_ENOUGH_CHUNKS);
-                            return;
+                        var invite = ClaimManager.getInstance().acceptInvite(player);
+                        if (invite != null) {
+                            var partyInvite = ClaimManager.getInstance().getPartyById(invite.party());
+                            if (partyInvite != null) {
+                                player.sendMessage(CommandMessages.PARTY_INVITE_JOIN.param("party_name", partyInvite.getName()).param("username", player.getDisplayName()));
+                                var playerSender = player.getWorld().getEntity(invite.sender());
+                                if (playerSender instanceof Player playerSenderPlayer) {
+                                    playerSenderPlayer.sendMessage(CommandMessages.PARTY_INVITE_JOIN.param("party_name", partyInvite.getName()).param("username", player.getDisplayName()));
+                                }
+                            }
                         }
-                        var chunkInfo = ClaimManager.getInstance().claimChunkByRawCoords(player.getWorld().getName(), (int) player.getPosition().getX(), (int) player.getPosition().getZ(), party, player);
-                        player.sendMessage(CommandMessages.CLAIMED);
                     }
                 }, world);
             } else {

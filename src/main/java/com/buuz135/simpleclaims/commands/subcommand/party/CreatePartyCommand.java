@@ -5,6 +5,7 @@ import com.buuz135.simpleclaims.commands.CommandMessages;
 import com.buuz135.simpleclaims.gui.PartyInfoEditGui;
 import com.hypixel.hytale.component.Ref;
 import com.hypixel.hytale.component.Store;
+import com.hypixel.hytale.protocol.GameMode;
 import com.hypixel.hytale.server.core.command.system.CommandContext;
 import com.hypixel.hytale.server.core.command.system.CommandSender;
 import com.hypixel.hytale.server.core.command.system.basecommands.AsyncCommandBase;
@@ -20,9 +21,9 @@ import static com.hypixel.hytale.server.core.command.commands.player.inventory.I
 
 public class CreatePartyCommand extends AsyncCommandBase {
 
-
     public CreatePartyCommand() {
         super("create", "Creates a new party");
+        this.setPermissionGroup(GameMode.Adventure);
     }
 
     @NonNullDecl

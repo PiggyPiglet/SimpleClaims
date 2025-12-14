@@ -2,6 +2,8 @@ package com.buuz135.simpleclaims.commands;
 
 import com.buuz135.simpleclaims.claim.ClaimManager;
 import com.buuz135.simpleclaims.commands.subcommand.party.CreatePartyCommand;
+import com.buuz135.simpleclaims.commands.subcommand.party.PartyAcceptCommand;
+import com.buuz135.simpleclaims.commands.subcommand.party.PartyInviteCommand;
 import com.buuz135.simpleclaims.commands.subcommand.party.op.OpCreatePartyCommand;
 import com.buuz135.simpleclaims.commands.subcommand.party.op.OpPartyListCommand;
 import com.buuz135.simpleclaims.gui.PartyInfoEditGui;
@@ -29,6 +31,8 @@ public class SimpleClaimsPartyCommand extends AsyncCommandBase {
         this.setPermissionGroup(GameMode.Adventure);
 
         this.addSubCommand(new CreatePartyCommand());
+        this.addSubCommand(new PartyInviteCommand());
+        this.addSubCommand(new PartyAcceptCommand());
         //OP Commands
         this.addSubCommand(new OpCreatePartyCommand());
         this.addSubCommand(new OpPartyListCommand());

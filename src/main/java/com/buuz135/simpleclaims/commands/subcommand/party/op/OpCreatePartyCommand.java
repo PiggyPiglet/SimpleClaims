@@ -19,6 +19,7 @@ import com.hypixel.hytale.server.core.universe.world.World;
 import com.hypixel.hytale.server.core.universe.world.storage.EntityStore;
 import org.checkerframework.checker.nullness.compatqual.NonNullDecl;
 
+import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 
 import static com.hypixel.hytale.server.core.command.commands.player.inventory.InventorySeeCommand.MESSAGE_COMMANDS_ERRORS_PLAYER_NOT_IN_WORLD;
@@ -50,6 +51,7 @@ public class OpCreatePartyCommand extends AsyncCommandBase {
 
                         party = ClaimManager.getInstance().createParty(player);
                         party.setName(commandName);
+                        party.setOwner(UUID.randomUUID());
                         player.sendMessage(CommandMessages.PARTY_CREATED);
                         player.getPageManager().openCustomPage(ref, store, new PartyInfoEditGui(playerRefComponent, party, true));
                     }

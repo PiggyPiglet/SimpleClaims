@@ -1,5 +1,6 @@
 package com.buuz135.simpleclaims.claim;
 
+import com.buuz135.simpleclaims.claim.party.PartyInvite;
 import com.buuz135.simpleclaims.util.FileUtils;
 import com.buuz135.simpleclaims.claim.chunk.ChunkInfo;
 import com.buuz135.simpleclaims.claim.party.PartyInfo;
@@ -27,6 +28,7 @@ public class ClaimManager {
     private HashMap<String, PartyInfo> parties;
     private HashMap<String, HashMap<String, ChunkInfo>> chunks;
     private HashMap<String, UUID> adminUsageParty;
+    private HashMap<String, PartyInvite> partyInvites;
     private boolean needsMapUpdate;
     private boolean isDirty;
     private Thread savingThread;
@@ -44,6 +46,7 @@ public class ClaimManager {
         this.needsMapUpdate = false;
         this.isDirty = false;
         this.playerNameTracker = new PlayerNameTracker();
+        this.partyInvites = new HashMap<>();
 
         FileUtils.ensureMainDirectory();
 
@@ -262,5 +265,19 @@ public class ClaimManager {
 
     public HashMap<String, UUID> getAdminUsageParty() {
         return adminUsageParty;
+    }
+
+    public void invitePlayerToParty(Player recipient, PartyInfo partyInfo, Player sender){
+        this.partyInvites.put(recipient.getUuid().toString(), new PartyInvite(recipient.getUuid(), sender.getUuid(), partyInfo.getId()));
+    }
+
+    public PartyInvite acceptInvite(Player player){
+        var invite = this.partyInvites.get(player.getUuid().toString());
+        if (invite == null) return null;
+        var party = this.getPartyById(invite.party());
+        if (party == null) return null;
+        party.addMember(player.getUuid());
+        this.partyInvites.remove(player.getUuid().toString());
+        return invite;
     }
 }
