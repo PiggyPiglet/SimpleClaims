@@ -2,6 +2,7 @@ package com.buuz135.simpleclaims.claim;
 
 import com.buuz135.simpleclaims.claim.party.PartyInvite;
 import com.buuz135.simpleclaims.commands.CommandMessages;
+import com.buuz135.simpleclaims.files.AdminOverridesBlockingFile;
 import com.buuz135.simpleclaims.files.ClaimedChunkBlockingFile;
 import com.buuz135.simpleclaims.files.PartyBlockingFile;
 import com.buuz135.simpleclaims.files.PlayerNameTrackerBlockingFile;
@@ -10,20 +11,17 @@ import com.buuz135.simpleclaims.claim.chunk.ChunkInfo;
 import com.buuz135.simpleclaims.claim.party.PartyInfo;
 import com.buuz135.simpleclaims.claim.player_name.PlayerNameTracker;
 import com.buuz135.simpleclaims.claim.tracking.ModifiedTracking;
-import com.hypixel.hytale.codec.util.RawJsonReader;
 import com.hypixel.hytale.logger.HytaleLogger;
 import com.hypixel.hytale.math.util.ChunkUtil;
 import com.hypixel.hytale.server.core.entity.entities.Player;
 import com.hypixel.hytale.server.core.universe.PlayerRef;
 import com.hypixel.hytale.server.core.universe.world.World;
-import com.hypixel.hytale.server.core.util.BsonUtil;
 
 import javax.annotation.Nullable;
 import java.awt.*;
-import java.io.IOException;
 import java.time.LocalDateTime;
 import java.util.*;
-import java.util.List;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Predicate;
 import java.util.logging.Level;
 
@@ -31,9 +29,10 @@ public class ClaimManager {
 
     private static final ClaimManager INSTANCE = new ClaimManager();
 
-    private HashMap<String, UUID> adminUsageParty;
-    private HashMap<String, PartyInvite> partyInvites;
-    private List<String> adminClaimOverrides;
+    private final Map<UUID, UUID> adminUsageParty;
+    private final Map<UUID, PartyInvite> partyInvites;
+    private final Map<UUID, UUID> playerToParty;
+    private final Map<UUID, Integer> partyClaimCounts;
     private boolean needsMapUpdate;
     private boolean isDirty;
     private Thread savingThread;
@@ -41,20 +40,23 @@ public class ClaimManager {
     private PlayerNameTrackerBlockingFile playerNameTrackerBlockingFile;
     private PartyBlockingFile partyBlockingFile;
     private ClaimedChunkBlockingFile claimedChunkBlockingFile;
+    private AdminOverridesBlockingFile adminOverridesBlockingFile;
 
     public static ClaimManager getInstance() {
         return INSTANCE;
     }
 
     private ClaimManager() {
-        this.adminUsageParty = new HashMap<>();
+        this.adminUsageParty = new ConcurrentHashMap<>();
         this.needsMapUpdate = false;
         this.isDirty = false;
-        this.partyInvites = new HashMap<>();
-        this.adminClaimOverrides = new ArrayList<>();
+        this.partyInvites = new ConcurrentHashMap<>();
+        this.playerToParty = new ConcurrentHashMap<>();
+        this.partyClaimCounts = new ConcurrentHashMap<>();
         this.partyBlockingFile = new PartyBlockingFile();
         this.claimedChunkBlockingFile = new ClaimedChunkBlockingFile();
         this.playerNameTrackerBlockingFile = new PlayerNameTrackerBlockingFile();
+        this.adminOverridesBlockingFile = new AdminOverridesBlockingFile();
 
         FileUtils.ensureMainDirectory();
 
@@ -62,8 +64,11 @@ public class ClaimManager {
             var partyPath = FileUtils.ensureFile(FileUtils.PARTY_PATH, "{}");
             logger.at(Level.INFO).log("Loading party data...");
             this.partyBlockingFile.syncLoad();
-            for (PartyInfo value : this.partyBlockingFile.getParties().values()) {
-                System.out.println(value);
+            for (PartyInfo party : this.partyBlockingFile.getParties().values()) {
+                System.out.println(party);
+                for (UUID member : party.getMembers()) {
+                    playerToParty.put(member, party.getId());
+                }
             }
         } catch (Exception e) {
             logger.at(Level.SEVERE).log("LOADING PARTY FILE ERROR");
@@ -76,7 +81,11 @@ public class ClaimManager {
         try {
             var claimPath = FileUtils.ensureFile(FileUtils.CLAIM_PATH, "{}");
             this.claimedChunkBlockingFile.syncLoad();
-
+            for (HashMap<String, ChunkInfo> dimensionChunks : this.claimedChunkBlockingFile.getChunks().values()) {
+                for (ChunkInfo chunk : dimensionChunks.values()) {
+                    partyClaimCounts.merge(chunk.getPartyOwner(), 1, Integer::sum);
+                }
+            }
         } catch (Exception e) {
             logger.at(Level.SEVERE).log("LOADING CLAIM FILE ERROR");
             logger.at(Level.SEVERE).log(e.getMessage());
@@ -92,6 +101,14 @@ public class ClaimManager {
             logger.at(Level.SEVERE).log(e.getMessage());
             //throw new RuntimeException(e);
             // TODO Create the file again
+        }
+
+        try {
+            var adminOverridesFile = FileUtils.ensureFile(FileUtils.ADMIN_OVERRIDES_PATH, "{}");
+            this.adminOverridesBlockingFile.syncLoad();
+        } catch (Exception e) {
+            logger.at(Level.SEVERE).log("LOADING ADMIN OVERRIDES FILE ERROR");
+            logger.at(Level.SEVERE).log(e.getMessage());
         }
 
         this.savingThread = new Thread(() -> {
@@ -122,6 +139,13 @@ public class ClaimManager {
                         logger.at(Level.SEVERE).log(e.getMessage());
                     }
 
+                    try {
+                        var adminOverridesFile = FileUtils.ensureFile(FileUtils.ADMIN_OVERRIDES_PATH, "{}");
+                        this.adminOverridesBlockingFile.syncSave();
+                    } catch (Exception e) {
+                        logger.at(Level.SEVERE).log(e.getMessage());
+                    }
+
                     logger.at(Level.INFO).log("Finished saving data... Eepy time...");
                 }
                 try {
@@ -147,27 +171,25 @@ public class ClaimManager {
     }
 
     public boolean isAllowedToInteract(UUID playerUUID, String dimension, int chunkX, int chunkZ, Predicate<PartyInfo> interactMethod) {
-        // Admin Overrides ignores all the checks
-        if (adminClaimOverrides.contains(playerUUID.toString())) return true;
-        // Check if the chunk is claimed and yf the chunk is not claimed return true
+        if (adminOverridesBlockingFile.getAdminOverrides().contains(playerUUID)) return true;
+
         var chunkInfo = getChunkRawCoords(dimension, chunkX, chunkZ);
         if (chunkInfo == null) return true;
 
-        // Check the chunk party interact restrictions and check if the interact method is allowed
         var chunkParty = getPartyById(chunkInfo.getPartyOwner());
         if (chunkParty == null || interactMethod.test(chunkParty)) return true;
 
-        // Get the player party, if the player doesn't have a party then it can't be a member of the claimed chunk party
-        var partyFromPlayer = getPartyFromPlayer(playerUUID);
-        if (partyFromPlayer == null) return false;
+        var partyId = playerToParty.get(playerUUID);
+        if (partyId == null) return false;
 
-        // Check if its the same party
-        return chunkInfo.getPartyOwner().equals(partyFromPlayer.getId());
+        return chunkInfo.getPartyOwner().equals(partyId);
     }
 
     @Nullable
-    public PartyInfo getPartyFromPlayer(UUID player){
-        return this.partyBlockingFile.getParties().values().stream().filter(partyInfo -> partyInfo.isOwnerOrMember(player)).findFirst().orElse(null);
+    public PartyInfo getPartyFromPlayer(UUID player) {
+        UUID partyId = playerToParty.get(player);
+        if (partyId == null) return null;
+        return getPartyById(partyId);
     }
 
     @Nullable
@@ -181,6 +203,7 @@ public class ClaimManager {
         party.setCreatedTracked(new ModifiedTracking(playerRef.getUuid(), owner.getDisplayName(), LocalDateTime.now().toString()));
         party.setModifiedTracked(new ModifiedTracking(playerRef.getUuid(), owner.getDisplayName(), LocalDateTime.now().toString()));
         this.partyBlockingFile.getParties().put(party.getId().toString(), party);
+        this.playerToParty.put(playerRef.getUuid(), party.getId());
         this.markDirty();
         return party;
     }
@@ -208,6 +231,7 @@ public class ClaimManager {
         var chunkDimension = this.getChunks().computeIfAbsent(dimension, k -> new HashMap<>());
         chunkDimension.put(ChunkInfo.formatCoordinates(chunkX, chunkZ), chunkInfo);
         chunkInfo.setCreatedTracked(new ModifiedTracking(playerRef.getUuid(), owner.getDisplayName(), LocalDateTime.now().toString()));
+        partyClaimCounts.merge(partyInfo.getId(), 1, Integer::sum);
         this.markDirty();
         return chunkInfo;
     }
@@ -216,31 +240,24 @@ public class ClaimManager {
         return this.claimChunkBy(dimension, ChunkUtil.chunkCoordinate(blockX), ChunkUtil.chunkCoordinate(blockZ), partyInfo, owner, playerRef);
     }
 
-    public boolean hasEnoughClaimsLeft(PartyInfo partyInfo){
+    public boolean hasEnoughClaimsLeft(PartyInfo partyInfo) {
         int maxAmount = partyInfo.getMaxClaimAmount();
-        int currentAmount = 0;
-        for (String dimension : this.getChunks().keySet()) {
-            for (ChunkInfo value : this.getChunks().get(dimension).values()) {
-                if (value.getPartyOwner().equals(partyInfo.getId())) currentAmount++;
-                if (currentAmount >= maxAmount) return false;
-            }
-        }
-        return true;
+        int currentAmount = partyClaimCounts.getOrDefault(partyInfo.getId(), 0);
+        return currentAmount < maxAmount;
     }
 
     public int getAmountOfClaims(PartyInfo partyInfo) {
-        int currentAmount = 0;
-        for (String dimension : this.getChunks().keySet()) {
-            for (ChunkInfo value : this.getChunks().get(dimension).values()) {
-                if (value.getPartyOwner().equals(partyInfo.getId())) currentAmount++;
-
-            }
-        }
-        return currentAmount;
+        return partyClaimCounts.getOrDefault(partyInfo.getId(), 0);
     }
 
-    public void unclaim(String dimension, int chunkX, int chunkZ){
-        this.getChunks().computeIfAbsent(dimension, k -> new HashMap<>()).remove(ChunkInfo.formatCoordinates(chunkX, chunkZ));
+    public void unclaim(String dimension, int chunkX, int chunkZ) {
+        var chunkMap = this.getChunks().get(dimension);
+        if (chunkMap != null) {
+            ChunkInfo removed = chunkMap.remove(ChunkInfo.formatCoordinates(chunkX, chunkZ));
+            if (removed != null) {
+                partyClaimCounts.computeIfPresent(removed.getPartyOwner(), (k, v) -> v > 1 ? v - 1 : null);
+            }
+        }
         this.markDirty();
     }
 
@@ -268,25 +285,28 @@ public class ClaimManager {
         return this.claimedChunkBlockingFile.getChunks();
     }
 
-    public HashMap<String, UUID> getAdminUsageParty() {
+    public Map<UUID, UUID> getAdminUsageParty() {
         return adminUsageParty;
     }
 
     public void invitePlayerToParty(PlayerRef recipient, PartyInfo partyInfo, PlayerRef sender) {
-        this.partyInvites.put(recipient.getUuid().toString(), new PartyInvite(recipient.getUuid(), sender.getUuid(), partyInfo.getId()));
+        this.partyInvites.put(recipient.getUuid(), new PartyInvite(recipient.getUuid(), sender.getUuid(), partyInfo.getId()));
     }
 
     public PartyInvite acceptInvite(PlayerRef player) {
-        var invite = this.partyInvites.get(player.getUuid().toString());
+        var invite = this.partyInvites.get(player.getUuid());
         if (invite == null) return null;
         var party = this.getPartyById(invite.party());
         if (party == null) return null;
         party.addMember(player.getUuid());
-        this.partyInvites.remove(player.getUuid().toString());
+        this.playerToParty.put(player.getUuid(), party.getId());
+        this.partyInvites.remove(player.getUuid());
         return invite;
     }
 
     public void leaveParty(PlayerRef player, PartyInfo partyInfo) {
+        this.playerToParty.remove(player.getUuid());
+
         if (partyInfo.isOwner(player.getUuid())) {
             partyInfo.removeMember(player.getUuid());
             if (partyInfo.getMembers().length > 0) {
@@ -303,13 +323,19 @@ public class ClaimManager {
         markDirty();
     }
 
-    public void disbandParty(PartyInfo partyInfo){
+    public void disbandParty(PartyInfo partyInfo) {
+        for (UUID member : partyInfo.getMembers()) {
+            playerToParty.remove(member);
+        }
+
         this.getChunks().forEach((dimension, chunkInfos) -> chunkInfos.values().removeIf(chunkInfo -> chunkInfo.getPartyOwner().equals(partyInfo.getId())));
+        partyClaimCounts.remove(partyInfo.getId());
+
         this.partyBlockingFile.getParties().remove(partyInfo.getId().toString());
         markDirty();
     }
 
-    public List<String> getAdminClaimOverrides() {
-        return adminClaimOverrides;
+    public Set<UUID> getAdminClaimOverrides() {
+        return adminOverridesBlockingFile.getAdminOverrides();
     }
 }

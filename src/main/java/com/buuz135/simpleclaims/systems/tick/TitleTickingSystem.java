@@ -16,14 +16,19 @@ import org.checkerframework.checker.nullness.compatqual.NonNullDecl;
 import org.checkerframework.checker.nullness.compatqual.NullableDecl;
 
 import java.awt.*;
-import java.util.HashMap;
+import java.util.Map;
+import java.util.UUID;
+import java.util.concurrent.ConcurrentHashMap;
 
 public class TitleTickingSystem extends EntityTickingSystem<EntityStore> {
 
-    private HashMap<String, Message> titles;
+    private static final Message WILDERNESS_MESSAGE = Message.raw("Wilderness").color(Color.GREEN);
+    private static final Message SIMPLE_CLAIMS_MESSAGE = Message.raw("Simple Claims");
+    private static final String WILDERNESS_TEXT = "Wilderness";
+    private final Map<UUID, String> playerLastTitle;
 
     public TitleTickingSystem() {
-        this.titles = new HashMap<>();
+        this.playerLastTitle = new ConcurrentHashMap<>();
     }
 
     @Override
@@ -31,18 +36,33 @@ public class TitleTickingSystem extends EntityTickingSystem<EntityStore> {
         Ref<EntityStore> ref = archetypeChunk.getReferenceTo(index);
         PlayerRef playerRef = store.getComponent(ref, PlayerRef.getComponentType());
         Player player = store.getComponent(ref, Player.getComponentType());
-        var chunk = Message.raw("Wilderness").color(Color.GREEN);
-        var chunkInfo = ClaimManager.getInstance().getChunkRawCoords(player.getWorld().getName(), (int) playerRef.getTransform().getPosition().getX(), (int) playerRef.getTransform().getPosition().getZ());
-        if (chunkInfo != null){
+
+        Message titleMessage = WILDERNESS_MESSAGE;
+        String titleText = WILDERNESS_TEXT;
+
+        var chunkInfo = ClaimManager.getInstance().getChunkRawCoords(
+                player.getWorld().getName(),
+                (int) playerRef.getTransform().getPosition().getX(),
+                (int) playerRef.getTransform().getPosition().getZ()
+        );
+
+        if (chunkInfo != null) {
             var party = ClaimManager.getInstance().getPartyById(chunkInfo.getPartyOwner());
-            if (party != null) chunk = Message.raw(party.getName()).color(Color.WHITE);
-        }
-        var current = this.titles.getOrDefault(playerRef.getUuid().toString(), Message.raw(""));
-        if (!current.getRawText().equals(chunk.getRawText())) {
-            this.titles.put(playerRef.getUuid().toString(), chunk);
-            EventTitleUtil.showEventTitleToPlayer(playerRef, chunk, Message.raw("Simple Claims"), false, null, 2, 0.5f, 0.5f);
+            if (party != null) {
+                titleText = party.getName();
+                titleMessage = Message.raw(titleText).color(Color.WHITE);
+            }
         }
 
+        String previousTitle = playerLastTitle.get(playerRef.getUuid());
+        if (!titleText.equals(previousTitle)) {
+            playerLastTitle.put(playerRef.getUuid(), titleText);
+            EventTitleUtil.showEventTitleToPlayer(playerRef, titleMessage, SIMPLE_CLAIMS_MESSAGE, false, null, 2, 0.5f, 0.5f);
+        }
+    }
+
+    public void removePlayer(UUID playerId) {
+        playerLastTitle.remove(playerId);
     }
 
     @NullableDecl

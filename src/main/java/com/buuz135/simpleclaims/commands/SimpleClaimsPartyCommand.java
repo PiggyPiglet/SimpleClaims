@@ -49,7 +49,6 @@ public class SimpleClaimsPartyCommand extends AbstractAsyncCommand {
     protected CompletableFuture<Void> executeAsync(CommandContext commandContext) {
         CommandSender sender = commandContext.sender();
         if (sender instanceof Player player) {
-            player.getWorldMapTracker().tick(0);
             Ref<EntityStore> ref = player.getReference();
             if (ref != null && ref.isValid()) {
                 Store<EntityStore> store = ref.getStore();

@@ -1,3 +1,16 @@
+# 1.0.7
+
+* Fixed F key pickup not being protected in claimed chunks
+* Fixed world map not updating after claiming/unclaiming chunks
+* Fixed admin override not persisting across server restarts
+* Added Creative mode bypass option for admin override
+* Fixed config resetting on server restart
+* Fixed thread safety issues with concurrent map access
+* Fixed ChunkInfo codec parameter naming inconsistency
+* Performance: Optimized TitleTickingSystem to reduce allocations
+* Performance: ClaimManager now uses O(1) lookups for party/claim operations
+* Performance: PartyInfo now uses O(1) lookups for member/override checks
+
 # 1.0.6
 
 * Reworked how files are loaded and saved to be more reliable, old files should be compatible with the new system
