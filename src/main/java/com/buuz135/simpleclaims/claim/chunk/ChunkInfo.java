@@ -17,10 +17,10 @@ public class ChunkInfo {
                     (chunkInfo, uuid, extraInfo) -> chunkInfo.setPartyOwner(uuid),
                     (chunkInfo, extraInfo) -> chunkInfo.getPartyOwner()).add()
             .append(new KeyedCodec<>("ChunkX", Codec.INTEGER),
-                    (chunkInfo, uuid, extraInfo) -> chunkInfo.setChunkX(uuid),
+                    (chunkInfo, value, extraInfo) -> chunkInfo.setChunkX(value),
                     (chunkInfo, extraInfo) -> chunkInfo.getChunkX()).add()
-            .append(new KeyedCodec<>("ChunkY", Codec.INTEGER),
-                    (chunkInfo, uuid, extraInfo) -> chunkInfo.setChunkZ(uuid),
+            .append(new KeyedCodec<>("ChunkY", Codec.INTEGER), // "ChunkY" key stores Z; kept for save compatibility
+                    (chunkInfo, value, extraInfo) -> chunkInfo.setChunkZ(value),
                     (chunkInfo, extraInfo) -> chunkInfo.getChunkZ()).add()
             .append(new KeyedCodec<>("CreatedTracker", ModifiedTracking.CODEC),
                     (partyInfo, partyOverrides, extraInfo) -> partyInfo.setCreatedTracked(partyOverrides),
@@ -37,10 +37,10 @@ public class ChunkInfo {
     private int chunkZ;
     private ModifiedTracking createdTracked;
 
-    public ChunkInfo(UUID partyOwner, int chunkX, int chunkY) {
+    public ChunkInfo(UUID partyOwner, int chunkX, int chunkZ) {
         this.partyOwner = partyOwner;
         this.chunkX = chunkX;
-        this.chunkZ = chunkY;
+        this.chunkZ = chunkZ;
         this.createdTracked = new ModifiedTracking(UUID.randomUUID(), "-", LocalDateTime.now().toString());
     }
 
