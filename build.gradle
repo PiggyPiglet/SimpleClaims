@@ -36,7 +36,7 @@ if (os.isWindows()) {
     throw new GradleException("Unsupported OS for Hytale")
 }
 
-hytaleServerJar = "$hytaleHome/install/release/package/game/$game_build/Server/HytaleServer.jar"
+hytaleServerJar = "$hytaleHome/install/$patchline/package/game/$game_build/Server/HytaleServer.jar"
 
 
 
@@ -73,7 +73,7 @@ idea.project.settings.runConfigurations {
     'HytaleServer'(org.jetbrains.gradle.ext.Application) {
         mainClass = 'com.hypixel.hytale.Main'
         moduleName = project.idea.module.name + '.main'
-        programParameters = "--allow-op --disable-sentry --assets=$hytaleHome/$patchline/package/game/latest/Assets.zip --mods=${file("src/main/").absolutePath}  --auth-mode=authenticated"
+        programParameters = "--allow-op --disable-sentry --assets=$hytaleHome/install/$patchline/package/game/latest/Assets.zip --mods=${file("src/main/").absolutePath}  --auth-mode=authenticated"
         workingDirectory = serverRunDir.absolutePath
     }
 }
