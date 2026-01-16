@@ -40,6 +40,7 @@ public class SimpleClaimsPartyCommand extends AbstractAsyncCommand {
         this.addSubCommand(new OpModifyChunkAmountCommand());
         this.addSubCommand(new OpAllModifyChunkAmountCommand());
         this.addSubCommand(new OpOverrideCommand());
+        this.addSubCommand(new OpAddChunkAmountCommand());
     }
 
     @NonNullDecl

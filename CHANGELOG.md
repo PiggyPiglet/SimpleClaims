@@ -4,6 +4,7 @@
 * Party Chunk Amount Override is now ignored if the party has the same amount of chunks as the config so when the config
   changes it will use the config value
 * If the force simple claims map is off, now the default map will be forced
+* Added a command to add chunk to a party based on a player name /scp add-chunk-amount <player> <amount>
 
 # 1.0.12
 
