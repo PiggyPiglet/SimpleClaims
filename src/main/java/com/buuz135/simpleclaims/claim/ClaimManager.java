@@ -67,55 +67,30 @@ public class ClaimManager {
 
         FileUtils.ensureMainDirectory();
 
-        try {
-            var partyPath = FileUtils.ensureFile(FileUtils.PARTY_PATH, "{}");
-            logger.at(Level.INFO).log("Loading party data...");
-            this.partyBlockingFile.syncLoad();
-            for (PartyInfo party : this.partyBlockingFile.getParties().values()) {
-                for (UUID member : party.getMembers()) {
-                    playerToParty.put(member, party.getId());
-                }
+        logger.at(Level.INFO).log("Loading simple claims data...");
+
+        FileUtils.ensureFile(FileUtils.PARTY_PATH, "{}");
+        logger.at(Level.INFO).log("Loading party data...");
+        FileUtils.loadWithBackup(this.partyBlockingFile::syncLoad, FileUtils.PARTY_PATH, logger);
+        for (PartyInfo party : this.partyBlockingFile.getParties().values()) {
+            for (UUID member : party.getMembers()) {
+                playerToParty.put(member, party.getId());
             }
-        } catch (Exception e) {
-            logger.at(Level.SEVERE).log("LOADING PARTY FILE ERROR");
-            logger.at(Level.SEVERE).log(e.getMessage());
-            e.printStackTrace();
-            //throw new RuntimeException(e);
-            // TODO Create the file again
         }
 
-        try {
-            var claimPath = FileUtils.ensureFile(FileUtils.CLAIM_PATH, "{}");
-            this.claimedChunkBlockingFile.syncLoad();
-            for (HashMap<String, ChunkInfo> dimensionChunks : this.claimedChunkBlockingFile.getChunks().values()) {
-                for (ChunkInfo chunk : dimensionChunks.values()) {
-                    partyClaimCounts.merge(chunk.getPartyOwner(), 1, Integer::sum);
-                }
+        FileUtils.ensureFile(FileUtils.CLAIM_PATH, "{}");
+        FileUtils.loadWithBackup(this.claimedChunkBlockingFile::syncLoad, FileUtils.CLAIM_PATH, logger);
+        for (HashMap<String, ChunkInfo> dimensionChunks : this.claimedChunkBlockingFile.getChunks().values()) {
+            for (ChunkInfo chunk : dimensionChunks.values()) {
+                partyClaimCounts.merge(chunk.getPartyOwner(), 1, Integer::sum);
             }
-        } catch (Exception e) {
-            logger.at(Level.SEVERE).log("LOADING CLAIM FILE ERROR");
-            logger.at(Level.SEVERE).log(e.getMessage());
-            //throw new RuntimeException(e);
-            // TODO Create the file again
         }
 
-        try {
-            var nameCacheFile = FileUtils.ensureFile(FileUtils.NAMES_CACHE_PATH, "{}");
-            this.playerNameTrackerBlockingFile.syncLoad();
-        } catch (Exception e) {
-            logger.at(Level.SEVERE).log("LOADING NAME CACHE FILE ERROR");
-            logger.at(Level.SEVERE).log(e.getMessage());
-            //throw new RuntimeException(e);
-            // TODO Create the file again
-        }
+        FileUtils.ensureFile(FileUtils.NAMES_CACHE_PATH, "{}");
+        FileUtils.loadWithBackup(this.playerNameTrackerBlockingFile::syncLoad, FileUtils.NAMES_CACHE_PATH, logger);
 
-        try {
-            var adminOverridesFile = FileUtils.ensureFile(FileUtils.ADMIN_OVERRIDES_PATH, "{}");
-            this.adminOverridesBlockingFile.syncLoad();
-        } catch (Exception e) {
-            logger.at(Level.SEVERE).log("LOADING ADMIN OVERRIDES FILE ERROR");
-            logger.at(Level.SEVERE).log(e.getMessage());
-        }
+        FileUtils.ensureFile(FileUtils.ADMIN_OVERRIDES_PATH, "{}");
+        FileUtils.loadWithBackup(this.adminOverridesBlockingFile::syncLoad, FileUtils.ADMIN_OVERRIDES_PATH, logger);
 
         this.savingThread = new Thread(() -> {
             while (true) {
@@ -125,28 +100,32 @@ public class ClaimManager {
                     FileUtils.ensureMainDirectory();
 
                     try {
-                        var partyPath = FileUtils.ensureFile(FileUtils.PARTY_PATH, "{}");
+                        FileUtils.ensureFile(FileUtils.PARTY_PATH, "{}");
+                        FileUtils.backupFile(FileUtils.PARTY_PATH);
                         this.partyBlockingFile.syncSave();
                     } catch (Exception e) {
                         logger.at(Level.SEVERE).log(e.getMessage());
                     }
 
                     try {
-                        var claimPath = FileUtils.ensureFile(FileUtils.CLAIM_PATH, "{}");
+                        FileUtils.ensureFile(FileUtils.CLAIM_PATH, "{}");
+                        FileUtils.backupFile(FileUtils.CLAIM_PATH);
                         this.claimedChunkBlockingFile.syncSave();
                     } catch (Exception e) {
                         logger.at(Level.SEVERE).log(e.getMessage());
                     }
 
                     try {
-                        var namesCacheFile = FileUtils.ensureFile(FileUtils.NAMES_CACHE_PATH, "{}");
+                        FileUtils.ensureFile(FileUtils.NAMES_CACHE_PATH, "{}");
+                        FileUtils.backupFile(FileUtils.NAMES_CACHE_PATH);
                         this.playerNameTrackerBlockingFile.syncSave();
                     } catch (Exception e) {
                         logger.at(Level.SEVERE).log(e.getMessage());
                     }
 
                     try {
-                        var adminOverridesFile = FileUtils.ensureFile(FileUtils.ADMIN_OVERRIDES_PATH, "{}");
+                        FileUtils.ensureFile(FileUtils.ADMIN_OVERRIDES_PATH, "{}");
+                        FileUtils.backupFile(FileUtils.ADMIN_OVERRIDES_PATH);
                         this.adminOverridesBlockingFile.syncSave();
                     } catch (Exception e) {
                         logger.at(Level.SEVERE).log(e.getMessage());
@@ -164,7 +143,6 @@ public class ClaimManager {
         });
         this.savingThread.start();
 
-        markDirty();
     }
 
     public void markDirty() {

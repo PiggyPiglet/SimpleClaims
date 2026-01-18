@@ -7,6 +7,7 @@
 * Added a config to filly protect worlds, closes #73
 * [EXPERIMENTAL - ENABLED ON THE CONFIG] Added a allow entry party setting that stops players from entering a claimed
   chunk if they arent allowed. This is workaround for hytale's interaction bugs #40 #19
+* Added extra precautions for when file loading fails and added backups of those files
 
 # 1.0.14
 

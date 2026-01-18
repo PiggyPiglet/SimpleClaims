@@ -14,6 +14,7 @@ import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.nio.file.*;
+import java.util.logging.Level;
 
 public class FileUtils {
 
@@ -47,6 +48,50 @@ public class FileUtils {
             }
         }
         return file;
+    }
+
+    public static void backupFile(String path) {
+        var file = new File(path);
+        if (file.exists()) {
+            try {
+                Files.copy(file.toPath(), Paths.get(path + ".bak"), StandardCopyOption.REPLACE_EXISTING);
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
+    }
+
+    public static boolean restoreFromBackup(String path) {
+        var backupFile = new File(path + ".bak");
+        if (backupFile.exists()) {
+            try {
+                Files.copy(backupFile.toPath(), Paths.get(path), StandardCopyOption.REPLACE_EXISTING);
+                return true;
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
+        return false;
+    }
+
+    public static void loadWithBackup(Runnable loadRunnable, String path, HytaleLogger logger) {
+        try {
+            loadRunnable.run();
+        } catch (Exception e) {
+            logger.at(Level.SEVERE).log("LOADING FILE ERROR: " + path + ", trying backup...");
+            if (restoreFromBackup(path)) {
+                try {
+                    loadRunnable.run();
+                } catch (Exception ex) {
+                    logger.at(Level.SEVERE).log("LOADING BACKUP FILE ERROR: " + path);
+                    ex.printStackTrace();
+                    throw ex;
+                }
+            } else {
+                logger.at(Level.SEVERE).log("NO BACKUP FOUND FOR: " + path);
+                e.printStackTrace();
+            }
+        }
     }
 
 }
