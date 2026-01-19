@@ -24,8 +24,13 @@ public class DatabaseManager {
 
     public DatabaseManager(HytaleLogger logger) {
         this.logger = logger;
+
         try {
-            Class.forName("org.sqlite.JDBC");
+            Class.forName("com.buuz135.simpleclaims.libs.org.sqlite.JDBC");
+        } catch (Exception e) {
+            logger.at(Level.SEVERE).log("Couldn't find relocated JDBC driver for SQLite");
+        }
+        try {
             this.connection = DriverManager.getConnection("jdbc:sqlite:" + FileUtils.DATABASE_PATH);
             try (Statement statement = connection.createStatement()) {
                 statement.execute("PRAGMA foreign_keys = ON;");
