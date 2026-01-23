@@ -59,6 +59,14 @@ public class Main extends JavaPlugin {
         if (CONFIG.get().isEnableParticleBorders())
             this.getEntityStoreRegistry().registerSystem(new ChunkBordersTickingSystem());
         this.getEntityStoreRegistry().registerSystem(new CustomDamageEventSystem());
+
+        // Register global (world-level) event systems for explosion block damage
+        this.getEntityStoreRegistry().registerSystem(new GlobalDamageBlockEventSystem());
+        this.getEntityStoreRegistry().registerSystem(new GlobalBreakBlockEventSystem());
+
+        // Register projectile tracking system to trace explosions back to their owners
+        this.getEntityStoreRegistry().registerSystem(new ProjectileTrackingSystem());
+
         this.getChunkStoreRegistry().registerSystem(new WorldMapUpdateTickingSystem());
         this.getCommandRegistry().registerCommand(new SimpleClaimProtectCommand());
         this.getCommandRegistry().registerCommand(new SimpleClaimsPartyCommand());

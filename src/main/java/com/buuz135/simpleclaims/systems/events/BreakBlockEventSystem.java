@@ -34,7 +34,9 @@ public class BreakBlockEventSystem extends EntityEventSystem<EntityStore, BreakB
 
     @Override
     public void handle(final int index, @Nonnull final ArchetypeChunk<EntityStore> archetypeChunk, @Nonnull final Store<EntityStore> store, @Nonnull final CommandBuffer<EntityStore> commandBuffer, @Nonnull final BreakBlockEvent event) {
-        println("here BreakBlock");
+        // TODO: This class will be used later to implement https://github.com/Buuz135/SimpleClaims/issues/52
+        // For now, this fixes the issue of SimpleClaims not blocking breaks at all in Creative Mode.
+
         Ref<EntityStore> ref = archetypeChunk.getReferenceTo(index);
         Player player = store.getComponent(ref, Player.getComponentType());
         PlayerRef playerRef = store.getComponent(ref, PlayerRef.getComponentType());
@@ -46,7 +48,9 @@ public class BreakBlockEventSystem extends EntityEventSystem<EntityStore, BreakB
     @Nullable
     @Override
     public Query<EntityStore> getQuery() {
-        return PlayerRef.getComponentType();
+        return Query.any();
+        // normally this, but using Query.any() to try to capture the explosion block break/damage events (doesn't work)
+        // return PlayerRef.getComponentType();
     }
 
     @NonNullDecl
