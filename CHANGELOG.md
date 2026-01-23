@@ -8,6 +8,7 @@
 * Fixed Admin Claiming Gui not working properly, closes #125
 * Removing saving thread to avoid sometimes not saving data in big environments, closes #119 closes #97
 * Added a claiming bypass for chunks that dont have valid parties, closes #108
+* Fix: fixed issue where players can use benches to craft using resources from others' claimed chests
 
 # 1.0.19
 
