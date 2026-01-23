@@ -181,13 +181,16 @@ public class ClaimManager {
     }
 
     public boolean isAllowedToInteract(UUID playerUUID, String dimension, int chunkX, int chunkZ, Predicate<PartyInfo> interactMethod) {
-        if (adminOverrides.contains(playerUUID)) return true;
+        if (playerUUID != null && adminOverrides.contains(playerUUID)) return true;
 
         var chunkInfo = getChunkRawCoords(dimension, chunkX, chunkZ);
         if (chunkInfo == null) return !Arrays.asList(Main.CONFIG.get().getFullWorldProtection()).contains(dimension);
 
         var chunkParty = getPartyById(chunkInfo.getPartyOwner());
         if (chunkParty == null || interactMethod.test(chunkParty)) return true;
+
+        // If playerUUID is null (e.g., explosion with unknown source), deny in claimed chunks
+        if (playerUUID == null) return false;
 
         if (chunkParty.getPlayerAllies().contains(playerUUID)) return true;
 

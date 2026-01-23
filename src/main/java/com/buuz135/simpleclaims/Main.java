@@ -50,6 +50,7 @@ public class Main extends JavaPlugin {
         super.setup();
         CONFIG.save();
         this.getEntityStoreRegistry().registerSystem(new BreakBlockEventSystem());
+        this.getEntityStoreRegistry().registerSystem(new DamageBlockEventSystem());
         this.getEntityStoreRegistry().registerSystem(new PlaceBlockEventSystem());
         this.getEntityStoreRegistry().registerSystem(new InteractEventSystem());
         this.getEntityStoreRegistry().registerSystem(new PickupInteractEventSystem());
@@ -59,6 +60,11 @@ public class Main extends JavaPlugin {
         if (CONFIG.get().isEnableParticleBorders())
             this.getEntityStoreRegistry().registerSystem(new ChunkBordersTickingSystem());
         this.getEntityStoreRegistry().registerSystem(new CustomDamageEventSystem());
+
+        // Register global (world-level) event systems for block damage. Allows us to block custom item interactions from damaging claims.
+        this.getEntityStoreRegistry().registerSystem(new GlobalDamageBlockEventSystem());
+        this.getEntityStoreRegistry().registerSystem(new GlobalBreakBlockEventSystem());
+
         this.getChunkStoreRegistry().registerSystem(new WorldMapUpdateTickingSystem());
         this.getCommandRegistry().registerCommand(new SimpleClaimProtectCommand());
         this.getCommandRegistry().registerCommand(new SimpleClaimsPartyCommand());
