@@ -27,3 +27,8 @@ simpleclaims.partyOwnerTransferred = Partinden ayrildin, liderlik {username} adl
 simpleclaims.modifiedMaxChunkAmount = {party_name} icin maksimum chunk miktarini {amount} olarak degistirdin
 simpleclaims.enabledOverride = Admin duzenleme yetkisi acildi
 simpleclaims.disabledOverride = Admin duzenleme yetkisi kapatildi
+
+simpleclaims.activatedPartyChat = Parti sohbeti acildi
+simpleclaims.deactivatedPartyChat = Parti sohbeti kapatildi
+simpleclaims.playerActivatedPartyChat = {player} parti sohbetini acti
+simpleclaims.playerDeactivatedPartyChat = {player} parti sohbetini kapatti
