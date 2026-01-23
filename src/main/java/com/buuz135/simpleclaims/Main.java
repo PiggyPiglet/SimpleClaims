@@ -60,7 +60,7 @@ public class Main extends JavaPlugin {
             this.getEntityStoreRegistry().registerSystem(new ChunkBordersTickingSystem());
         this.getEntityStoreRegistry().registerSystem(new CustomDamageEventSystem());
 
-        // Register global (world-level) event systems for explosion block damage
+        // Register global (world-level) event systems for block damage. Allows us to block custom item interactions from damaging claims.
         this.getEntityStoreRegistry().registerSystem(new GlobalDamageBlockEventSystem());
         this.getEntityStoreRegistry().registerSystem(new GlobalBreakBlockEventSystem());
 
