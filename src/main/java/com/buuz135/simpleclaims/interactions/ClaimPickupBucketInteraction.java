@@ -6,6 +6,7 @@ import com.hypixel.hytale.codec.builder.BuilderCodec;
 import com.hypixel.hytale.component.CommandBuffer;
 import com.hypixel.hytale.component.Ref;
 import com.hypixel.hytale.component.Store;
+import com.hypixel.hytale.math.vector.Vector3d;
 import com.hypixel.hytale.math.vector.Vector3i;
 import com.hypixel.hytale.protocol.InteractionType;
 import com.hypixel.hytale.server.core.entity.InteractionContext;
@@ -34,7 +35,12 @@ public class ClaimPickupBucketInteraction extends RefillContainerInteraction {
         PlayerRef playerRef = store.getComponent(ref, PlayerRef.getComponentType());
         Predicate<PartyInfo> defaultInteract = PartyInfo::isBlockInteractEnabled;
         var targetBlock = context.getTargetBlock();
-        if (playerRef != null && ClaimManager.getInstance().isAllowedToInteract(playerRef.getUuid(), player.getWorld().getName(), targetBlock.x, targetBlock.z, defaultInteract)) {
+        if (playerRef != null && targetBlock == null) {
+            Vector3d playerPos = playerRef.getTransform().getPosition();
+            if (ClaimManager.getInstance().isAllowedToInteract(playerRef.getUuid(), player.getWorld().getName(), (int) playerPos.x, (int) playerPos.z, defaultInteract)) {
+                super.firstRun(type, context, cooldownHandler);
+            }
+        } else if (playerRef != null && ClaimManager.getInstance().isAllowedToInteract(playerRef.getUuid(), player.getWorld().getName(), targetBlock.x, targetBlock.z, defaultInteract)) {
             super.firstRun(type, context, cooldownHandler);
         }
     }
