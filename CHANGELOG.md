@@ -3,6 +3,7 @@
 * Fix interaction logic to require ignored flag for block interactions - pirmax
 * Add configurable command aliases - Emibergo02
 * Fixed Bench UI to reflect what user can actually craft with - spencerbass
+* feat: party chat toggling #113 - koply
 
 # 1.0.23
 
