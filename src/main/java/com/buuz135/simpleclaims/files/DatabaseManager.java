@@ -35,7 +35,6 @@ public class DatabaseManager {
             var sqliteFile = new File(FileUtils.DATABASE_PATH);
 
             if (!sqliteFile.exists()) {
-                sqliteFile.mkdirs();
                 sqliteFile.createNewFile();
             }
 

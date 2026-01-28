@@ -85,6 +85,8 @@ Settings related to the user interface and visual feedback.
   map.
 - **RenderClaimNamesOnWorldMap** (Boolean, Default: `false`): If `true`, the name of the party that owns a chunk and a
   colored border will be rendered directly on the world map.
+- **NotifyPartyChatToggling** (Boolean, Default: `true`): If `true`, all party members will be notified when someone
+  toggles their party chat.
 
 ## Experimental Settings
 
@@ -92,3 +94,5 @@ Use these with caution as they might still be in development.
 
 - **EXPERIMENTAL-EnableAlloyEntryTesting** (Boolean, Default: `false`): Enables experimental entry testing logic. This
   is a workaround for Hytale's interaction bugs.
+- **EXPERIMENTAL-RenderMapInClaimUI** (Boolean, Default: `true`): If `true`, renders a map showing claimed chunks inside
+  the claiming GUI.

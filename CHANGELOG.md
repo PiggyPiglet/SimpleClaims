@@ -1,3 +1,7 @@
+# 1.0.25
+
+* Fixed database file being created as a folder
+
 # 1.0.24
 
 * Fix interaction logic to require ignored flag for block interactions - pirmax

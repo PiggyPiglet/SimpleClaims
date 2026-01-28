@@ -16,6 +16,7 @@ descriptions.
 | `/simpleclaimsparty invite <player>`                         | `simpleclaims.create-invite`                     | Invites a player to your party.                                                      |
 | `/simpleclaimsparty invite-accept`                           | `simpleclaims.accept-invite`                     | Accepts your most recent party invite.                                               |
 | `/simpleclaimsparty leave`                                   | `simpleclaims.party-leave`                       | Leaves your current party.                                                           |
+| `/simpleclaimsparty chat-toggle`                             | `simpleclaims.edit-party`                        | Toggles the party chat.                                                              |
 | `/simpleclaimsparty admin-create <party-name>`               | `simpleclaims.admin.admin-create-party`          | Creates a new party with a specific name (admin tool).                               |
 | `/simpleclaimsparty admin-party-list`                        | `simpleclaims.admin.admin-party-list`            | Shows all parties and allows an admin to edit them.                                  |
 | `/simpleclaimsparty admin-modify-chunk <amount>`             | `simpleclaims.admin.admin-modify-chunk`          | Changes the chunk limit of the currently selected party.                             |
@@ -26,8 +27,9 @@ descriptions.
 
 #### Aliases
 
-- `/simpleclaims`: `/sc`, `/sc-chunks`, `/scc`
-- `/simpleclaimsparty`: `/scp`, `/sc-party`
+- `/simpleclaims`: `/sc`, `/sc-chunks`, `/scc`, `/chunk`, `/chunks`, `/claim`, `/claims`
+- `/simpleclaimsparty`: `/scp`, `/sc-party`, `/party`
+- `/simpleclaimsparty chat-toggle`: `/ct`, `/pc`, `/party-chat`
 
 ### Configuring Permissions with Hyales base permissions
 
