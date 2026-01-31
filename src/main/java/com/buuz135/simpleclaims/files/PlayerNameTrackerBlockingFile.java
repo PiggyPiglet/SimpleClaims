@@ -35,7 +35,8 @@ public class PlayerNameTrackerBlockingFile extends BlockingDiskFile {
             this.tracker.setPlayerName(
                     UUID.fromString(playerObj.get("UUID").getAsString()),
                     playerObj.get("Name").getAsString(),
-                    -1
+                    -1,
+                    0
             );
         });
     }

@@ -108,7 +108,7 @@ public class ClaimManager {
         logger.at(Level.INFO).log("Loading name cache data from DB...");
         PlayerNameTracker tracker = this.databaseManager.loadNameCache();
         for (PlayerNameTracker.PlayerName name : tracker.getNames()) {
-            this.playerNameTracker.setPlayerName(name.getUuid(), name.getName(), name.getLastSeen());
+            this.playerNameTracker.setPlayerName(name.getUuid(), name.getName(), name.getLastSeen(), name.getPlayTime());
         }
 
         logger.at(Level.INFO).log("Loading admin overrides data from DB...");
@@ -124,8 +124,8 @@ public class ClaimManager {
         this.databaseManager.saveClaim(dimension, chunkInfo);
     }
 
-    private void saveNameCache(UUID uuid, String name, long lastSeen) {
-        this.databaseManager.saveNameCache(uuid, name, lastSeen);
+    private void saveNameCache(UUID uuid, String name, long lastSeen, float playTime) {
+        this.databaseManager.saveNameCache(uuid, name, lastSeen, playTime);
     }
 
     private void saveAdminOverride(UUID uuid) {
@@ -247,8 +247,19 @@ public class ClaimManager {
     }
 
     public void setPlayerName(UUID uuid, String name, long lastSeen) {
-        this.playerNameTracker.setPlayerName(uuid, name, lastSeen);
-        this.databaseManager.saveNameCache(uuid, name, lastSeen);
+        var existing = this.playerNameTracker.getNamesMap().get(uuid);
+        float playTime = existing != null ? existing.getPlayTime() : 0;
+        this.playerNameTracker.setPlayerName(uuid, name, lastSeen, playTime);
+        this.databaseManager.saveNameCache(uuid, name, lastSeen, playTime);
+    }
+
+    public void setPlayerPlayTime(UUID uuid, float playTime) {
+        var existing = this.playerNameTracker.getNamesMap().get(uuid);
+        if (existing != null) {
+            if (Math.abs(existing.getPlayTime() - playTime) < 0.01) return;
+            this.playerNameTracker.setPlayerName(uuid, existing.getName(), existing.getLastSeen(), playTime);
+            this.databaseManager.saveNameCache(uuid, existing.getName(), existing.getLastSeen(), playTime);
+        }
     }
 
     public PlayerNameTracker getPlayerNameTracker() {

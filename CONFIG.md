@@ -8,7 +8,9 @@ These settings define the initial permissions and limits for newly created parti
 
 - **DefaultPartyClaimsAmount** (Integer, Default: `25`): The maximum number of chunks a party can claim by default.
 - **MaxAddChunkAmount** (Integer, Default: `100`): The maximum amount of chunks a party can have when using the
-  `add-chunk-amount` command.
+  `add-chunk-amount` command or gain by playtime.
+- **ClaimChunkGainInMinutes** (Integer, Default: `-1`): How often (in minutes) a player will gain another claim chunk by
+  play time. Use `-1` to disable this feature.
 - **MaxPartyMembers** (Integer, Default: `-1`): The maximum number of members a party can have. Use `-1` for no limit.
 - **MaxPartyAllies** (Integer, Default: `-1`): The maximum number of allies (both players and other parties) a party can
   have. Use `-1` for no limit.

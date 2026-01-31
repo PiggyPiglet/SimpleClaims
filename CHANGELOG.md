@@ -1,6 +1,7 @@
 # 1.0.27
 
 * Added a config option to limit how many claims a player can have, closes #132
+* Added a way to increase chunk limit by playtime, closes #46
 
 # 1.0.26
 

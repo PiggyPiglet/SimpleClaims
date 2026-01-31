@@ -61,6 +61,7 @@ public class Main extends JavaPlugin {
         this.getEntityStoreRegistry().registerSystem(new CustomDamageEventSystem());
         this.getEntityStoreRegistry().registerSystem(new QueuedCraftClaimFilterSystem());
         this.getEntityStoreRegistry().registerSystem(new CraftingUiQuantitiesSystem());
+        this.getEntityStoreRegistry().registerSystem(new PlayerPlayTimeSystem());
 
         // Register global (world-level) event systems for block damage. Allows us to block custom item interactions from damaging claims.
         this.getEntityStoreRegistry().registerSystem(new GlobalDamageBlockEventSystem());

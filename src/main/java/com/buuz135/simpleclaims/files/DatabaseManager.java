@@ -109,7 +109,8 @@ public class DatabaseManager {
             statement.execute("CREATE TABLE IF NOT EXISTS name_cache (" +
                     "uuid TEXT PRIMARY KEY," +
                     "name TEXT," +
-                    "last_seen INTEGER DEFAULT -1" +
+                    "last_seen INTEGER DEFAULT -1," +
+                    "play_time REAL DEFAULT 0" +
                     ")");
 
             statement.execute("CREATE TABLE IF NOT EXISTS admin_overrides (" +
@@ -117,6 +118,7 @@ public class DatabaseManager {
                     ")");
 
             addColumnIfNotExists("name_cache", "last_seen", "INTEGER DEFAULT " + System.currentTimeMillis());
+            addColumnIfNotExists("name_cache", "play_time", "REAL DEFAULT 0");
         }
     }
 
@@ -180,7 +182,7 @@ public class DatabaseManager {
 
             // Migrate Name Cache
             for (PlayerNameTracker.PlayerName name : nameFile.getTracker().getNames()) {
-                saveNameCache(name.getUuid(), name.getName(), name.getLastSeen());
+                saveNameCache(name.getUuid(), name.getName(), name.getLastSeen(), name.getPlayTime());
             }
 
             // Migrate Admin Overrides
@@ -440,11 +442,12 @@ public class DatabaseManager {
         return claims;
     }
 
-    public void saveNameCache(UUID uuid, String name, long lastSeen) {
-        try (PreparedStatement ps = connection.prepareStatement("REPLACE INTO name_cache (uuid, name, last_seen) VALUES (?, ?, ?)")) {
+    public void saveNameCache(UUID uuid, String name, long lastSeen, float playTime) {
+        try (PreparedStatement ps = connection.prepareStatement("REPLACE INTO name_cache (uuid, name, last_seen, play_time) VALUES (?, ?, ?, ?)")) {
             ps.setString(1, uuid.toString());
             ps.setString(2, name);
             ps.setLong(3, lastSeen);
+            ps.setFloat(4, playTime);
             ps.executeUpdate();
         } catch (SQLException e) {
             e.printStackTrace();
@@ -456,7 +459,7 @@ public class DatabaseManager {
         try (Statement statement = connection.createStatement();
              ResultSet rs = statement.executeQuery("SELECT * FROM name_cache")) {
             while (rs.next()) {
-                tracker.setPlayerName(UUID.fromString(rs.getString("uuid")), rs.getString("name"), rs.getLong("last_seen"));
+                tracker.setPlayerName(UUID.fromString(rs.getString("uuid")), rs.getString("name"), rs.getLong("last_seen"), rs.getFloat("play_time"));
             }
         } catch (SQLException e) {
             e.printStackTrace();

@@ -38,8 +38,8 @@ public class PlayerNameTracker {
         return null;
     }
 
-    public void setPlayerName(UUID uuid, String name, long lastSeen) {
-        names.put(uuid, new PlayerName(uuid, name, lastSeen));
+    public void setPlayerName(UUID uuid, String name, long lastSeen, float playTime) {
+        names.put(uuid, new PlayerName(uuid, name, lastSeen, playTime));
     }
 
     public HashMap<UUID, PlayerName> getNamesMap() {
@@ -54,15 +54,18 @@ public class PlayerNameTracker {
         private String name;
         @FieldName("LastSeen")
         private long lastSeen;
+        @FieldName("PlayTime")
+        private float playTime;
 
-        public PlayerName(UUID uuid, String name, long lastSeen) {
+        public PlayerName(UUID uuid, String name, long lastSeen, float playTime) {
             this.uuid = uuid;
             this.name = name;
             this.lastSeen = lastSeen;
+            this.playTime = playTime;
         }
 
         public PlayerName() {
-            this(UUID.randomUUID(), "", 0);
+            this(UUID.randomUUID(), "", 0, 0);
         }
 
         public UUID getUuid() {
@@ -75,6 +78,10 @@ public class PlayerNameTracker {
 
         public long getLastSeen() {
             return lastSeen;
+        }
+
+        public float getPlayTime() {
+            return playTime;
         }
     }
 }
