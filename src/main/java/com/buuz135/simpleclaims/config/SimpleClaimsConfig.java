@@ -6,6 +6,7 @@ public class SimpleClaimsConfig {
 
     private String[] PartyCommandAliases = new String[]{"scp", "sc-party", "party"};
     private int DefaultPartyClaimsAmount = 25;
+    private int MaxAddChunkAmount = 100; // The maximum amount of chunks a party can have when using the add-chunk-amount command
     private int MaxPartyMembers = -1;
     private int MaxPartyAllies = -1;
     private int PartyInactivityHours = -1;
@@ -58,6 +59,10 @@ public class SimpleClaimsConfig {
 
     public int getDefaultPartyClaimsAmount() {
         return DefaultPartyClaimsAmount;
+    }
+
+    public int getMaxAddChunkAmount() {
+        return MaxAddChunkAmount;
     }
 
     public boolean isDefaultPartyBlockPlaceEnabled() {

@@ -25,6 +25,7 @@ simpleclaims.partyLeft = You have left your party
 simpleclaims.partyDisbanded = You have left your party, as there aren't any members left the party has been dismantled
 simpleclaims.partyOwnerTransferred = You have left your party, and the ownership has been transfered to {username}
 simpleclaims.modifiedMaxChunkAmount = You have changed the max claimed chunk amount for {party_name} to {amount} chunks
+errors.simpleclaims.maxAddChunkReached = You can't add more chunks to this party, the limit is {limit}
 simpleclaims.enabledOverride = Enabled admin interaction override
 simpleclaims.disabledOverride = Disabled admin interaction override
 

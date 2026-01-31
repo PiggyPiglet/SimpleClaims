@@ -43,6 +43,7 @@ public class CommandMessages {
     public static final Message PARTY_OWNER_TRANSFERRED = Message.translation("commands.simpleclaims.partyOwnerTransferred").color(Color.GREEN).bold(true);
 
     public static final Message MODIFIED_MAX_CHUNK_AMOUNT = Message.translation("commands.simpleclaims.modifiedMaxChunkAmount").color(Color.GREEN).bold(true);
+    public static final Message MAX_ADD_CHUNK_REACHED = Message.translation("commands.errors.simpleclaims.maxAddChunkReached").color(Color.RED).bold(true);
 
     public static final Message ENABLED_OVERRIDE = Message.translation("commands.simpleclaims.enabledOverride").color(Color.GREEN).bold(true);
     public static final Message DISABLED_OVERRIDE = Message.translation("commands.simpleclaims.disabledOverride").color(Color.GREEN).bold(true);

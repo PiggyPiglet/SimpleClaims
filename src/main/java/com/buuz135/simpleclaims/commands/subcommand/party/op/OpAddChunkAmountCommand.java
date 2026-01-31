@@ -1,5 +1,6 @@
 package com.buuz135.simpleclaims.commands.subcommand.party.op;
 
+import com.buuz135.simpleclaims.Main;
 import com.buuz135.simpleclaims.claim.ClaimManager;
 import com.buuz135.simpleclaims.claim.party.PartyOverride;
 import com.buuz135.simpleclaims.claim.party.PartyOverrides;
@@ -40,6 +41,10 @@ public class OpAddChunkAmountCommand extends AbstractAsyncCommand {
         var party = ClaimManager.getInstance().getPartyFromPlayer(uuidSelectedPlayer);
         if (party == null) {
             sender.sendMessage(CommandMessages.PARTY_NOT_FOUND);
+            return CompletableFuture.completedFuture(null);
+        }
+        if (party.getMaxClaimAmount() + selectedAmount > Main.CONFIG.get().getMaxAddChunkAmount()) {
+            sender.sendMessage(CommandMessages.MAX_ADD_CHUNK_REACHED.param("limit", Main.CONFIG.get().getMaxAddChunkAmount()));
             return CompletableFuture.completedFuture(null);
         }
 

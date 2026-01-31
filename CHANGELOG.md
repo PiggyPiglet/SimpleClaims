@@ -1,3 +1,7 @@
+# 1.0.27
+
+* Added a config option to limit how many claims a player can have, closes #132
+
 # 1.0.26
 
 * Improved Bench Protection performance, closes #161

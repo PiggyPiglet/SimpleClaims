@@ -7,6 +7,8 @@ This document explains all the configuration options available in the `SimpleCla
 These settings define the initial permissions and limits for newly created parties.
 
 - **DefaultPartyClaimsAmount** (Integer, Default: `25`): The maximum number of chunks a party can claim by default.
+- **MaxAddChunkAmount** (Integer, Default: `100`): The maximum amount of chunks a party can have when using the
+  `add-chunk-amount` command.
 - **MaxPartyMembers** (Integer, Default: `-1`): The maximum number of members a party can have. Use `-1` for no limit.
 - **MaxPartyAllies** (Integer, Default: `-1`): The maximum number of allies (both players and other parties) a party can
   have. Use `-1` for no limit.
