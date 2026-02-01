@@ -2,6 +2,7 @@ package com.buuz135.simpleclaims.interactions;
 
 import com.buuz135.simpleclaims.claim.ClaimManager;
 import com.buuz135.simpleclaims.claim.party.PartyInfo;
+import com.buuz135.simpleclaims.claim.party.PartyOverrides;
 import com.hypixel.hytale.codec.builder.BuilderCodec;
 import com.hypixel.hytale.component.CommandBuffer;
 import com.hypixel.hytale.component.Ref;
@@ -33,7 +34,7 @@ public class ClaimCycleBlockGroupInteraction extends CycleBlockGroupInteraction 
         Player player = store.getComponent(ref, Player.getComponentType());
         PlayerRef playerRef = store.getComponent(ref, PlayerRef.getComponentType());
         Predicate<PartyInfo> defaultInteract = PartyInfo::isBlockInteractEnabled;
-        if (playerRef != null && ClaimManager.getInstance().isAllowedToInteract(playerRef.getUuid(), player.getWorld().getName(), targetBlock.getX(), targetBlock.getZ(), defaultInteract)) {
+        if (playerRef != null && ClaimManager.getInstance().isAllowedToInteract(playerRef.getUuid(), player.getWorld().getName(), targetBlock.getX(), targetBlock.getZ(), defaultInteract, PartyOverrides.PARTY_PROTECTION_INTERACT)) {
             super.interactWithBlock(world, commandBuffer, type, context, heldItemStack, targetBlock, cooldownHandler);
         }
 
@@ -46,7 +47,7 @@ public class ClaimCycleBlockGroupInteraction extends CycleBlockGroupInteraction 
         Player player = store.getComponent(ref, Player.getComponentType());
         PlayerRef playerRef = store.getComponent(ref, PlayerRef.getComponentType());
         Predicate<PartyInfo> defaultInteract = PartyInfo::isBlockInteractEnabled;
-        if (playerRef != null && ClaimManager.getInstance().isAllowedToInteract(playerRef.getUuid(), player.getWorld().getName(), targetBlock.getX(), targetBlock.getZ(), defaultInteract)) {
+        if (playerRef != null && ClaimManager.getInstance().isAllowedToInteract(playerRef.getUuid(), player.getWorld().getName(), targetBlock.getX(), targetBlock.getZ(), defaultInteract, PartyOverrides.PARTY_PROTECTION_INTERACT)) {
             super.simulateInteractWithBlock(type, context, itemInHand, world, targetBlock);
         }
     }

@@ -2,6 +2,7 @@ package com.buuz135.simpleclaims.systems.events;
 
 import com.buuz135.simpleclaims.claim.ClaimManager;
 import com.buuz135.simpleclaims.claim.party.PartyInfo;
+import com.buuz135.simpleclaims.claim.party.PartyOverrides;
 import com.hypixel.hytale.component.ArchetypeChunk;
 import com.hypixel.hytale.component.CommandBuffer;
 import com.hypixel.hytale.component.Ref;
@@ -38,7 +39,8 @@ public class PickupInteractEventSystem extends EntityEventSystem<EntityStore, In
                 player.getWorld().getName(),
                 (int) playerRef.getTransform().getPosition().getX(),
                 (int) playerRef.getTransform().getPosition().getZ(),
-                PartyInfo::isBlockInteractEnabled)) {
+                PartyInfo::isBlockInteractEnabled,
+                PartyOverrides.PARTY_PROTECTION_INTERACT)) {
             event.setCancelled(true); // Doesnt currently work, it gets ignored
         }
     }

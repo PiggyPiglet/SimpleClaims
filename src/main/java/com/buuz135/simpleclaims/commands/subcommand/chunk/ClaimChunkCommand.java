@@ -1,6 +1,7 @@
 package com.buuz135.simpleclaims.commands.subcommand.chunk;
 
 import com.buuz135.simpleclaims.claim.ClaimManager;
+import com.buuz135.simpleclaims.claim.party.PartyOverrides;
 import com.buuz135.simpleclaims.commands.CommandMessages;
 import com.hypixel.hytale.component.Ref;
 import com.hypixel.hytale.component.Store;
@@ -44,6 +45,10 @@ public class ClaimChunkCommand extends AbstractAsyncCommand {
                     if (party == null) {
                         party = ClaimManager.getInstance().createParty(player, playerRef, false);
                         player.sendMessage(CommandMessages.PARTY_CREATED);
+                    }
+                    if (!party.hasPermission(playerRef.getUuid(), PartyOverrides.PARTY_PROTECTION_CLAIM_UNCLAIM)) {
+                        player.sendMessage(CommandMessages.NO_PERMISSION);
+                        return;
                     }
                     var chunk = ClaimManager.getInstance().getChunkRawCoords(player.getWorld().getName(), (int) playerRef.getTransform().getPosition().getX(), (int) playerRef.getTransform().getPosition().getZ());
                     if (chunk != null && ClaimManager.getInstance().getPartyById(chunk.getPartyOwner()) != null) {

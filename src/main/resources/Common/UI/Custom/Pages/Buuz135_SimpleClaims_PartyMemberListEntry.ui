@@ -31,6 +31,14 @@ Group {
   Label {
     FlexWeight: 1;
   }
+
+  $C.@TextButton #PermissionMemberButton {
+    Anchor: (Right: 10, Vertical: 0);
+    Padding: (Left: 8, Right: 8, Top: 4, Bottom: 4);
+    Text: "Permission";
+    Overscroll: false;
+  }
+
   $C.@CancelTextButton #RemoveMemberButton {
     Anchor: (Right: 10, Vertical: 0);
     Padding: (Left: 8, Right: 8, Top: 4, Bottom: 4);

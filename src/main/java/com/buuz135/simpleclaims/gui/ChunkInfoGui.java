@@ -2,6 +2,7 @@ package com.buuz135.simpleclaims.gui;
 
 import com.buuz135.simpleclaims.Main;
 import com.buuz135.simpleclaims.claim.ClaimManager;
+import com.buuz135.simpleclaims.claim.party.PartyOverrides;
 import com.buuz135.simpleclaims.commands.CommandMessages;
 import com.buuz135.simpleclaims.util.MessageHelper;
 import com.hypixel.hytale.codec.Codec;
@@ -119,12 +120,18 @@ public class ChunkInfoGui extends InteractiveCustomUIPage<ChunkInfoGui.ChunkInfo
         }
         var player = store.getComponent(ref, PlayerRef.getComponentType());
         var playerParty = ClaimManager.getInstance().getPartyFromPlayer(player.getUuid());
+        var canPlayerClaim = false;
+        if (playerParty != null) {
+            canPlayerClaim = playerParty.hasPermission(player.getUuid(), PartyOverrides.PARTY_PROTECTION_CLAIM_UNCLAIM);
+        }
         if (isOp) {
             var selectedPartyID = ClaimManager.getInstance().getAdminUsageParty().get(playerRef.getUuid());
             if (selectedPartyID != null) {
                 playerParty = ClaimManager.getInstance().getPartyById(selectedPartyID);
             }
+            canPlayerClaim = true;
         }
+
         uiCommandBuilder.set("#ClaimedChunksInfo #ClaimedChunksCount.Text", ClaimManager.getInstance().getAmountOfClaims(playerParty)+ "");
         uiCommandBuilder.set("#ClaimedChunksInfo #MaxChunksCount.Text", playerParty.getMaxClaimAmount() + "");
 
@@ -166,14 +173,15 @@ public class ChunkInfoGui extends InteractiveCustomUIPage<ChunkInfoGui.ChunkInfo
                                 .append(Message.raw(partyInfo.getName())).nl()
                                 .append(Message.raw("Description: ").bold(true).color(hytaleGold))
                                 .append(Message.raw(partyInfo.getDescription()));
-                        if (playerParty != null && playerParty.getId().equals(partyInfo.getId())) {
+                        if (playerParty != null && playerParty.getId().equals(partyInfo.getId()) && canPlayerClaim) {
                             tooltip = tooltip.nl().nl().append(Message.raw("*Right Click to Unclaim*").bold(true).color(Color.RED.darker().darker()));
                         }
                         uiCommandBuilder.set("#ChunkCards[" + z + "][" + x + "].TooltipTextSpans", tooltip.build());
-                        uiEventBuilder.addEventBinding(CustomUIEventBindingType.RightClicking, "#ChunkCards[" + z + "][" + x + "]", EventData.of("Action", "RightClicking:" + (chunkX + x - 8) + ":" + (chunkZ + z - 8)));
+                        if (canPlayerClaim)
+                            uiEventBuilder.addEventBinding(CustomUIEventBindingType.RightClicking, "#ChunkCards[" + z + "][" + x + "]", EventData.of("Action", "RightClicking:" + (chunkX + x - 8) + ":" + (chunkZ + z - 8)));
                     } else { // The chunk doesnt have a valid party
                         var tooltip = MessageHelper.multiLine().append(Message.raw(Main.CONFIG.get().getWildernessName()).bold(true).color(Color.GREEN.darker()));
-                        if (playerParty != null) {
+                        if (playerParty != null && canPlayerClaim) {
                             tooltip = tooltip.nl().nl().append(Message.raw("*Left Click to claim*").bold(true).color(Color.GRAY));
                             uiEventBuilder.addEventBinding(CustomUIEventBindingType.Activating, "#ChunkCards[" + z + "][" + x + "]", EventData.of("Action", "LeftClicking:" + (chunkX + x - 8) + ":" + (chunkZ + z - 8)));
                         } else {
@@ -183,7 +191,7 @@ public class ChunkInfoGui extends InteractiveCustomUIPage<ChunkInfoGui.ChunkInfo
                     }
                 } else {
                     var tooltip = MessageHelper.multiLine().append(Message.raw(Main.CONFIG.get().getWildernessName()).bold(true).color(Color.GREEN.darker()));
-                    if (playerParty != null) {
+                    if (playerParty != null && canPlayerClaim) {
                         tooltip = tooltip.nl().nl().append(Message.raw("*Left Click to claim*").bold(true).color(Color.GRAY));
                         uiEventBuilder.addEventBinding(CustomUIEventBindingType.Activating, "#ChunkCards[" + z + "][" + x + "]", EventData.of("Action", "LeftClicking:" + (chunkX + x - 8) + ":" + (chunkZ + z - 8)));
                     } else {

@@ -3,6 +3,7 @@ package com.buuz135.simpleclaims.systems.events;
 import com.buuz135.simpleclaims.Main;
 import com.buuz135.simpleclaims.claim.ClaimManager;
 import com.buuz135.simpleclaims.claim.party.PartyInfo;
+import com.buuz135.simpleclaims.claim.party.PartyOverrides;
 import com.hypixel.hytale.component.CommandBuffer;
 import com.hypixel.hytale.component.Store;
 import com.hypixel.hytale.component.dependency.Dependency;
@@ -46,7 +47,7 @@ public class GlobalBreakBlockEventSystem extends WorldEventSystem<EntityStore, B
         int z = event.getTargetBlock().getZ();
 
         // Block all global break events in claimed chunks
-        if (!ClaimManager.getInstance().isAllowedToInteract(null, worldName, x, z, PartyInfo::isBlockBreakEnabled)) {
+        if (!ClaimManager.getInstance().isAllowedToInteract(null, worldName, x, z, PartyInfo::isBlockBreakEnabled, PartyOverrides.PARTY_PROTECTION_BREAK_BLOCKS)) {
             event.setCancelled(true);
         }
     }

@@ -2,6 +2,7 @@ package com.buuz135.simpleclaims.util;
 
 import com.buuz135.simpleclaims.claim.ClaimManager;
 import com.buuz135.simpleclaims.claim.party.PartyInfo;
+import com.buuz135.simpleclaims.claim.party.PartyOverrides;
 import com.hypixel.hytale.server.core.inventory.container.ItemContainer;
 import com.hypixel.hytale.server.core.universe.PlayerRef;
 import com.hypixel.hytale.server.core.universe.world.World;
@@ -45,7 +46,7 @@ public final class BenchChestCache {
         int i = 0;
         for (int x = bx - h; x <= bx + h; x++) {
             for (int z = bz - h; z <= bz + h; z++) {
-                allowed[i++] = ClaimManager.getInstance().isAllowedToInteract(playerId, worldName, x, z, PartyInfo::isChestInteractEnabled);
+                allowed[i++] = ClaimManager.getInstance().isAllowedToInteract(playerId, worldName, x, z, PartyInfo::isChestInteractEnabled, PartyOverrides.PARTY_PROTECTION_INTERACT_CHEST);
             }
         }
         return allowed;

@@ -117,6 +117,15 @@ public class DatabaseManager {
                     "uuid TEXT PRIMARY KEY" +
                     ")");
 
+            statement.execute("CREATE TABLE IF NOT EXISTS party_permission_overrides (" +
+                    "party_id TEXT," +
+                    "target_uuid TEXT," +
+                    "permission TEXT," +
+                    "value INTEGER," +
+                    "PRIMARY KEY (party_id, target_uuid, permission)," +
+                    "FOREIGN KEY (party_id) REFERENCES parties(id) ON DELETE CASCADE" +
+                    ")");
+
             addColumnIfNotExists("name_cache", "last_seen", "INTEGER DEFAULT " + System.currentTimeMillis());
             addColumnIfNotExists("name_cache", "play_time", "REAL DEFAULT 0");
         }
@@ -296,6 +305,24 @@ public class DatabaseManager {
                 insertPAlly.executeBatch();
             }
 
+            // Permission Overrides
+            try (PreparedStatement deletePerms = connection.prepareStatement("DELETE FROM party_permission_overrides WHERE party_id = ?")) {
+                deletePerms.setString(1, party.getId().toString());
+                deletePerms.executeUpdate();
+            }
+            try (PreparedStatement insertPerm = connection.prepareStatement("INSERT INTO party_permission_overrides (party_id, target_uuid, permission, value) VALUES (?, ?, ?, ?)")) {
+                for (Map.Entry<UUID, Map<String, Boolean>> entry : party.getPermissionOverrides().entrySet()) {
+                    for (Map.Entry<String, Boolean> permEntry : entry.getValue().entrySet()) {
+                        insertPerm.setString(1, party.getId().toString());
+                        insertPerm.setString(2, entry.getKey().toString());
+                        insertPerm.setString(3, permEntry.getKey());
+                        insertPerm.setInt(4, permEntry.getValue() ? 1 : 0);
+                        insertPerm.addBatch();
+                    }
+                }
+                insertPerm.executeBatch();
+            }
+
         } catch (SQLException e) {
             e.printStackTrace();
         }
@@ -380,6 +407,20 @@ public class DatabaseManager {
                     try (ResultSet rsAllies = ps.executeQuery()) {
                         while (rsAllies.next()) {
                             party.addPlayerAllies(UUID.fromString(rsAllies.getString("player_uuid")));
+                        }
+                    }
+                }
+
+                // Load permission overrides
+                try (PreparedStatement ps = connection.prepareStatement("SELECT * FROM party_permission_overrides WHERE party_id = ?")) {
+                    ps.setString(1, id.toString());
+                    try (ResultSet rsPerms = ps.executeQuery()) {
+                        while (rsPerms.next()) {
+                            party.setPermission(
+                                    UUID.fromString(rsPerms.getString("target_uuid")),
+                                    rsPerms.getString("permission"),
+                                    rsPerms.getInt("value") == 1
+                            );
                         }
                     }
                 }

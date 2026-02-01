@@ -137,24 +137,31 @@ public class ClaimManager {
         this.saveParty(partyInfo);
     }
 
-    public boolean isAllowedToInteract(UUID playerUUID, String dimension, int chunkX, int chunkZ, Predicate<PartyInfo> interactMethod) {
+    public boolean isAllowedToInteract(UUID playerUUID, String dimension, int chunkX, int chunkZ, Predicate<PartyInfo> interactMethod, String permission) {
         if (playerUUID != null && adminOverrides.contains(playerUUID)) return true;
 
         var chunkInfo = getChunkRawCoords(dimension, chunkX, chunkZ);
         if (chunkInfo == null) return !Arrays.asList(Main.CONFIG.get().getFullWorldProtection()).contains(dimension);
 
         var chunkParty = getPartyById(chunkInfo.getPartyOwner());
-        if (chunkParty == null || interactMethod.test(chunkParty)) return true;
-
+        if (chunkParty == null) return true;
+        
         // If playerUUID is null (e.g., explosion with unknown source), deny in claimed chunks
         if (playerUUID == null) return false;
 
-        if (chunkParty.getPlayerAllies().contains(playerUUID)) return true;
+        if (chunkParty.isOwnerOrMember(playerUUID) || chunkParty.isPlayerAllied(playerUUID)) {
+            if (chunkParty.hasPermission(playerUUID, permission)) return true;
+            return false;
+        }
 
         var partyId = playerToParty.get(playerUUID);
-        if (partyId == null) return false;
+        if (partyId != null && chunkParty.isPartyAllied(partyId)) {
+            if (chunkParty.hasPartyPermission(partyId, permission)) return true;
+            return false;
+        }
 
-        return chunkInfo.getPartyOwner().equals(partyId) || chunkParty.getPartyAllies().contains(partyId);
+        //Interact check for players that arent party members or allies
+        return interactMethod.test(chunkParty);
     }
 
     @Nullable

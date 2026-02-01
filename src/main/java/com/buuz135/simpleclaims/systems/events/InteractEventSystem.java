@@ -3,6 +3,7 @@ package com.buuz135.simpleclaims.systems.events;
 import com.buuz135.simpleclaims.Main;
 import com.buuz135.simpleclaims.claim.ClaimManager;
 import com.buuz135.simpleclaims.claim.party.PartyInfo;
+import com.buuz135.simpleclaims.claim.party.PartyOverrides;
 import com.buuz135.simpleclaims.systems.tick.CraftingUiQuantitiesSystem;
 import com.buuz135.simpleclaims.util.BenchChestCache;
 import com.buuz135.simpleclaims.util.WindowExtraResourcesState;
@@ -47,6 +48,7 @@ public class InteractEventSystem extends EntityEventSystem<EntityStore, UseBlock
         Player player = store.getComponent(ref, Player.getComponentType());
         PlayerRef playerRef = store.getComponent(ref, PlayerRef.getComponentType());
         Predicate<PartyInfo> defaultInteract = PartyInfo::isBlockInteractEnabled;
+        String permission = PartyOverrides.PARTY_PROTECTION_INTERACT;
         var blockName = event.getBlockType().getId().toLowerCase(Locale.ROOT);
         var ignored = false;
 
@@ -54,11 +56,14 @@ public class InteractEventSystem extends EntityEventSystem<EntityStore, UseBlock
             if (blockName.contains(blocksThatIgnoreInteractRestriction.toLowerCase(Locale.ROOT))) ignored = true;
         }
 
-        if (blockName.contains("chest")) defaultInteract = PartyInfo::isChestInteractEnabled;
-        else if (blockName.contains("bench") && !blockName.contains("furniture")) {
+        if (blockName.contains("chest")) {
+            defaultInteract = PartyInfo::isChestInteractEnabled;
+            permission = PartyOverrides.PARTY_PROTECTION_INTERACT_CHEST;
+        } else if (blockName.contains("bench") && !blockName.contains("furniture")) {
             defaultInteract = PartyInfo::isBenchInteractEnabled;
+            permission = PartyOverrides.PARTY_PROTECTION_INTERACT_BENCH;
 
-            if (playerRef != null && !ClaimManager.getInstance().isAllowedToInteract(playerRef.getUuid(), player.getWorld().getName(), event.getTargetBlock().getX(), event.getTargetBlock().getZ(), defaultInteract)) {
+            if (playerRef != null && !ClaimManager.getInstance().isAllowedToInteract(playerRef.getUuid(), player.getWorld().getName(), event.getTargetBlock().getX(), event.getTargetBlock().getZ(), defaultInteract, permission)) {
                 event.setCancelled(true);
                 playerRef.getPacketHandler().getChannel().attr(WindowExtraResourcesState.NEXT_OPEN_EXTRA).set(null);
                 return;
@@ -75,13 +80,17 @@ public class InteractEventSystem extends EntityEventSystem<EntityStore, UseBlock
                 WindowExtraResourcesState.getOrCreateBenchSet(ch).add(0); // provisional id
             }
             return;
-        }
-        else if (blockName.contains("door")) defaultInteract = PartyInfo::isDoorInteractEnabled;
-        else if (blockName.contains("chair") || blockName.contains("stool") || (blockName.contains("bench") && blockName.contains("furniture")))
+        } else if (blockName.contains("door")) {
+            defaultInteract = PartyInfo::isDoorInteractEnabled;
+            permission = PartyOverrides.PARTY_PROTECTION_INTERACT_DOOR;
+        } else if (blockName.contains("chair") || blockName.contains("stool") || (blockName.contains("bench") && blockName.contains("furniture"))) {
             defaultInteract = PartyInfo::isChairInteractEnabled;
-        else if (blockName.contains("portal") || blockName.contains("teleporter"))
+            permission = PartyOverrides.PARTY_PROTECTION_INTERACT_CHAIR;
+        } else if (blockName.contains("portal") || blockName.contains("teleporter")) {
             defaultInteract = PartyInfo::isPortalInteractEnabled;
-        if (!ignored && (playerRef != null && !ClaimManager.getInstance().isAllowedToInteract(playerRef.getUuid(), player.getWorld().getName(), event.getTargetBlock().getX(), event.getTargetBlock().getZ(), defaultInteract))) {
+            permission = PartyOverrides.PARTY_PROTECTION_INTERACT_PORTAL;
+        }
+        if (!ignored && (playerRef != null && !ClaimManager.getInstance().isAllowedToInteract(playerRef.getUuid(), player.getWorld().getName(), event.getTargetBlock().getX(), event.getTargetBlock().getZ(), defaultInteract, permission))) {
             event.setCancelled(true);
         }
     }

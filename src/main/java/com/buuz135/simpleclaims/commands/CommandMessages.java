@@ -54,4 +54,5 @@ public class CommandMessages {
     public static final Message PARTY_CHAT_DEACTIVATED = Message.translation("commands.simpleclaims.deactivatedPartyChat").color(Color.GREEN).bold(true);
     public static final Message PLAYER_PARTY_CHAT_ACTIVATED = Message.translation("commands.simpleclaims.playerActivatedPartyChat").color(Color.GREEN).bold(true);
     public static final Message PLAYER_PARTY_CHAT_DEACTIVATED = Message.translation("commands.simpleclaims.playerDeactivatedPartyChat").color(Color.GREEN).bold(true);
+    public static final Message NO_PERMISSION = Message.translation("commands.errors.simpleclaims.noPermission").color(Color.RED).bold(true);
 }

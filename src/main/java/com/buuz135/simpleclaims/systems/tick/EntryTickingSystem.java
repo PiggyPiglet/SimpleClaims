@@ -50,7 +50,7 @@ public class EntryTickingSystem extends EntityTickingSystem<EntityStore> {
         );
 
         if (chunkInfo != null) {
-            if (!ClaimManager.getInstance().isAllowedToInteract(playerRef.getUuid(), player.getWorld().getName(), (int) playerRef.getTransform().getPosition().getX(), (int) playerRef.getTransform().getPosition().getZ(), PartyInfo::isAllowEntryEnabled)) {
+            if (!ClaimManager.getInstance().isAllowedToInteract(playerRef.getUuid(), player.getWorld().getName(), (int) playerRef.getTransform().getPosition().getX(), (int) playerRef.getTransform().getPosition().getZ(), PartyInfo::isAllowEntryEnabled, "")) {
                 if (playerLastSafePositions.containsKey(playerRef.getUuid())) {
                     var safePositions = playerLastSafePositions.get(playerRef.getUuid());
                     if (safePositions.size() > 2) {

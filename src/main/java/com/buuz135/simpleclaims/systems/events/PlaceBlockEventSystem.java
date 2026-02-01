@@ -2,6 +2,7 @@ package com.buuz135.simpleclaims.systems.events;
 
 import com.buuz135.simpleclaims.claim.ClaimManager;
 import com.buuz135.simpleclaims.claim.party.PartyInfo;
+import com.buuz135.simpleclaims.claim.party.PartyOverrides;
 import com.hypixel.hytale.component.ArchetypeChunk;
 import com.hypixel.hytale.component.CommandBuffer;
 import com.hypixel.hytale.component.Ref;
@@ -33,7 +34,7 @@ public class PlaceBlockEventSystem extends EntityEventSystem<EntityStore, PlaceB
        Ref<EntityStore> ref = archetypeChunk.getReferenceTo(index);
        Player player = store.getComponent(ref, Player.getComponentType());
         PlayerRef playerRef = store.getComponent(ref, PlayerRef.getComponentType());
-        if (playerRef != null && !ClaimManager.getInstance().isAllowedToInteract(playerRef.getUuid(), player.getWorld().getName(), event.getTargetBlock().getX(), event.getTargetBlock().getZ(), PartyInfo::isBlockPlaceEnabled)) {
+        if (playerRef != null && !ClaimManager.getInstance().isAllowedToInteract(playerRef.getUuid(), player.getWorld().getName(), event.getTargetBlock().getX(), event.getTargetBlock().getZ(), PartyInfo::isBlockPlaceEnabled, PartyOverrides.PARTY_PROTECTION_PLACE_BLOCKS)) {
            event.setCancelled(true);
        }
     }

@@ -14,4 +14,9 @@ public class PartyOverrides {
     public static final String PARTY_PROTECTION_INTERACT_BENCH = "simpleclaims.party.protection.interact.bench";
     public static final String PARTY_PROTECTION_INTERACT_CHAIR = "simpleclaims.party.protection.interact.chair";
     public static final String PARTY_PROTECTION_INTERACT_PORTAL = "simpleclaims.party.protection.interact.portal";
+
+    public static final String PARTY_PROTECTION_MODIFY_INFO = "simpleclaims.party.protection.modify_info";
+    public static final String PARTY_PROTECTION_CLAIM_UNCLAIM = "simpleclaims.party.protection.claim_unclaim";
+    public static final String PARTY_PROTECTION_INVITE_PLAYERS = "simpleclaims.party.protection.invite_players";
+    public static final String PARTY_PROTECTION_ADD_ALLIES = "simpleclaims.party.protection.add_allies";
 }

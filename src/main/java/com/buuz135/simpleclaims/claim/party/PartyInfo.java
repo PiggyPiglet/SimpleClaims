@@ -22,6 +22,7 @@ public class PartyInfo {
     private ModifiedTracking modifiedTracked;
     private final Set<UUID> partyAllies;
     private final Set<UUID> playerAllies;
+    private final Map<UUID, Map<String, Boolean>> permissionOverrides;
 
     public PartyInfo(UUID id, UUID owner, String name, String description, UUID[] members, int color) {
         this.id = id;
@@ -42,6 +43,7 @@ public class PartyInfo {
         this.modifiedTracked = new ModifiedTracking();
         this.partyAllies = new HashSet<>();
         this.playerAllies = new HashSet<>();
+        this.permissionOverrides = new HashMap<>();
     }
 
     public PartyInfo() {
@@ -280,6 +282,64 @@ public class PartyInfo {
 
     public void removePlayerAllies(UUID uuid) {
         playerAllies.remove(uuid);
+    }
+
+    public boolean isPlayerAllied(UUID uuid) {
+        return playerAllies.contains(uuid);
+    }
+
+    public boolean isPartyAllied(UUID uuid) {
+        return partyAllies.contains(uuid);
+    }
+
+    public Map<UUID, Map<String, Boolean>> getPermissionOverrides() {
+        return permissionOverrides;
+    }
+
+    public boolean hasPermission(UUID uuid, String permission) {
+        if (isOwner(uuid)) return true;
+        if (isMember(uuid) || partyAllies.contains(uuid) || playerAllies.contains(uuid)) {
+            if (permissionOverrides.containsKey(uuid)) {
+                Map<String, Boolean> perms = permissionOverrides.get(uuid);
+                if (perms.containsKey(permission)) {
+                    return perms.get(permission);
+                }
+            }
+        }
+        // Default permissions for members
+        if (isMember(uuid)) {
+            if (permission.equals(PartyOverrides.PARTY_PROTECTION_MODIFY_INFO)) return false;
+            return true;
+        }
+        // Defaul Perm for Allies
+        if (playerAllies.contains(uuid) || partyAllies.contains(uuid)) {
+            // Allies might have some permissions by default or none. Assuming none for now if not overridden.
+            return false;
+        }
+        return false;
+    }
+
+    public boolean hasPartyPermission(UUID partyId, String permission) {
+        if (permissionOverrides.containsKey(partyId)) {
+            Map<String, Boolean> perms = permissionOverrides.get(partyId);
+            if (perms.containsKey(permission)) {
+                return perms.get(permission);
+            }
+        }
+        return false;
+    }
+
+    public void setPermission(UUID uuid, String permission, boolean value) {
+        permissionOverrides.computeIfAbsent(uuid, k -> new HashMap<>()).put(permission, value);
+    }
+
+    public void removePermission(UUID uuid, String permission) {
+        if (permissionOverrides.containsKey(uuid)) {
+            permissionOverrides.get(uuid).remove(permission);
+            if (permissionOverrides.get(uuid).isEmpty()) {
+                permissionOverrides.remove(uuid);
+            }
+        }
     }
 
     @Override

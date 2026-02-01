@@ -9,6 +9,7 @@ import com.buuz135.simpleclaims.Main;
 import com.buuz135.simpleclaims.commands.CommandMessages;
 import com.buuz135.simpleclaims.gui.subscreens.ChunkListGui;
 import com.buuz135.simpleclaims.gui.subscreens.InteractGui;
+import com.buuz135.simpleclaims.gui.subscreens.PermissionEditGui;
 import com.hypixel.hytale.codec.Codec;
 import com.hypixel.hytale.codec.KeyedCodec;
 import com.hypixel.hytale.codec.builder.BuilderCodec;
@@ -55,7 +56,7 @@ public class PartyInfoEditGui extends InteractiveCustomUIPage<PartyInfoEditGui.P
     public void handleDataEvent(@NonNullDecl Ref<EntityStore> ref, @NonNullDecl Store<EntityStore> store, @NonNullDecl PartyInfoData data) {
         super.handleDataEvent(ref, store, data);
         var player = store.getComponent(ref, Player.getComponentType());
-        var playerCanModify = this.info.isOwner(playerRef.getUuid()) || this.isOpEdit;
+        var playerCanModify = this.info.isOwner(playerRef.getUuid()) || this.isOpEdit || this.info.hasPermission(player.getUuid(), PartyOverrides.PARTY_PROTECTION_MODIFY_INFO);
         if (!playerCanModify) {
             UICommandBuilder commandBuilder = new UICommandBuilder();
             UIEventBuilder eventBuilder = new UIEventBuilder();
@@ -209,6 +210,11 @@ public class PartyInfoEditGui extends InteractiveCustomUIPage<PartyInfoEditGui.P
                     }
                 }
             }
+            if (data.button != null && data.button.startsWith("EditMemberPerms:")) {
+                UUID uuid = UUID.fromString(data.button.substring("EditMemberPerms:".length()));
+                player.getPageManager().openCustomPage(ref, store, new PermissionEditGui(playerRef, this.info, uuid, this, this.isOpEdit));
+                return;
+            }
             if (data.button.equals("SeeClaimedChunks")) {
                 player.getPageManager().openCustomPage(ref, store, new ChunkListGui(playerRef, this.info, this, this.isOpEdit));
                 return;
@@ -224,7 +230,7 @@ public class PartyInfoEditGui extends InteractiveCustomUIPage<PartyInfoEditGui.P
     @Override
     public void build(@NonNullDecl Ref<EntityStore> ref, @NonNullDecl UICommandBuilder uiCommandBuilder, @NonNullDecl UIEventBuilder uiEventBuilder, @NonNullDecl Store<EntityStore> store) {
         var player = store.getComponent(ref, PlayerRef.getComponentType());
-        var playerCanModify = this.info.isOwner(player.getUuid()) || this.isOpEdit;
+        var playerCanModify = this.info.hasPermission(player.getUuid(), PartyOverrides.PARTY_PROTECTION_MODIFY_INFO) || this.isOpEdit;
         uiCommandBuilder.append("Pages/Buuz135_SimpleClaims_EditParty.ui");
         uiCommandBuilder.set("#PartyInfo #PartyNameField.Value", this.info.getName());
         uiCommandBuilder.set("#PartyInfo #PartyNameField.IsReadOnly", !playerCanModify);
@@ -243,6 +249,11 @@ public class PartyInfoEditGui extends InteractiveCustomUIPage<PartyInfoEditGui.P
             if (!isOwner) {
                 uiCommandBuilder.set("#MemberEntries[" + i + "] #MemberRole.Background.Color", "#1a8dec83");
                 uiCommandBuilder.set("#MemberEntries[" + i + "] #MemberRole.OutlineColor", "#1a8decde");
+            }
+            if (!isOwner && playerCanModify) {
+                uiEventBuilder.addEventBinding(CustomUIEventBindingType.Activating, "#MemberEntries[" + i + "] #PermissionMemberButton", EventData.of("Button", "EditMemberPerms:" + this.info.getMembers()[i].toString()), false);
+            } else {
+                uiCommandBuilder.set("#MemberEntries[" + i + "] #PermissionMemberButton.Disabled", true);
             }
             if (!playerCanModify || isOwner){
                 uiCommandBuilder.set("#MemberEntries[" + i + "] #RemoveMemberButton.Disabled", true);
@@ -289,6 +300,11 @@ public class PartyInfoEditGui extends InteractiveCustomUIPage<PartyInfoEditGui.P
             uiCommandBuilder.set("#MemberEntries[" + i + "] #MemberRole.Background.Color", "#5ab44e83");
             uiCommandBuilder.set("#MemberEntries[" + i + "] #MemberRole.OutlineColor", "#5ab44ede");
 
+            if (playerCanModify) {
+                uiEventBuilder.addEventBinding(CustomUIEventBindingType.Activating, "#MemberEntries[" + i + "] #PermissionMemberButton", EventData.of("Button", "EditMemberPerms:" + uuid.toString()), false);
+            } else {
+                uiCommandBuilder.set("#MemberEntries[" + i + "] #PermissionMemberButton.Disabled", true);
+            }
             if (!playerCanModify) {
                 uiCommandBuilder.set("#MemberEntries[" + i + "] #RemoveMemberButton.Disabled", true);
             } else {
@@ -317,6 +333,11 @@ public class PartyInfoEditGui extends InteractiveCustomUIPage<PartyInfoEditGui.P
             uiCommandBuilder.set("#MemberEntries[" + i + "] #MemberRole.Background.Color", "#5ab44e83");
             uiCommandBuilder.set("#MemberEntries[" + i + "] #MemberRole.OutlineColor", "#5ab44ede");
 
+            if (playerCanModify) {
+                uiEventBuilder.addEventBinding(CustomUIEventBindingType.Activating, "#MemberEntries[" + i + "] #PermissionMemberButton", EventData.of("Button", "EditMemberPerms:" + uuid.toString()), false);
+            } else {
+                uiCommandBuilder.set("#MemberEntries[" + i + "] #PermissionMemberButton.Disabled", true);
+            }
             if (!playerCanModify) {
                 uiCommandBuilder.set("#MemberEntries[" + i + "] #RemoveMemberButton.Disabled", true);
             } else {
@@ -388,8 +409,9 @@ public class PartyInfoEditGui extends InteractiveCustomUIPage<PartyInfoEditGui.P
         uiEventBuilder.addEventBinding(CustomUIEventBindingType.Activating, "#ConfirmInviteButton", EventData.of("Button", "Invite"), false);
         uiEventBuilder.addEventBinding(CustomUIEventBindingType.Activating, "#ConfirmAlliesButton", EventData.of("Button", "Allies"), false);
 
-        uiCommandBuilder.set("#ConfirmInviteButton.Disabled", !playerCanModify);
-        uiCommandBuilder.set("#ConfirmAlliesButton.Disabled", !playerCanModify);
+        uiCommandBuilder.set("#ConfirmInviteButton.Disabled", !this.info.hasPermission(player.getUuid(), PartyOverrides.PARTY_PROTECTION_INVITE_PLAYERS) && !this.isOpEdit);
+        uiCommandBuilder.set("#ConfirmAlliesButton.Disabled", !this.info.hasPermission(player.getUuid(), PartyOverrides.PARTY_PROTECTION_ADD_ALLIES) && !this.isOpEdit);
+        uiCommandBuilder.set("#SeeClaimedChunksButton.Disabled", !this.info.hasPermission(player.getUuid(), PartyOverrides.PARTY_PROTECTION_CLAIM_UNCLAIM) && !this.isOpEdit);
     }
 
     public static class PartyInfoData {

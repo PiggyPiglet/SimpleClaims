@@ -4,6 +4,7 @@ package com.buuz135.simpleclaims.interactions;
 import com.buuz135.simpleclaims.Main;
 import com.buuz135.simpleclaims.claim.ClaimManager;
 import com.buuz135.simpleclaims.claim.party.PartyInfo;
+import com.buuz135.simpleclaims.claim.party.PartyOverrides;
 import com.hypixel.hytale.codec.builder.BuilderCodec;
 import com.hypixel.hytale.component.CommandBuffer;
 import com.hypixel.hytale.component.Ref;
@@ -43,6 +44,7 @@ public class ClaimUseBlockInteraction extends UseBlockInteraction {
         Player player = store.getComponent(ref, Player.getComponentType());
         PlayerRef playerRef = store.getComponent(ref, PlayerRef.getComponentType());
         Predicate<PartyInfo> defaultInteract = PartyInfo::isBlockInteractEnabled;
+        String permission = PartyOverrides.PARTY_PROTECTION_INTERACT;
         var blockName = world.getBlockType(targetBlock).getId().toLowerCase(Locale.ROOT);
         var ignored = false;
 
@@ -50,26 +52,40 @@ public class ClaimUseBlockInteraction extends UseBlockInteraction {
             if (blockName.contains(blocksThatIgnoreInteractRestriction.toLowerCase(Locale.ROOT))) ignored = true;
         }
 
-        if (blockName.contains("chest")) defaultInteract = PartyInfo::isChestInteractEnabled;
-        else if (blockName.contains("bench") && !blockName.contains("furniture"))
+        if (blockName.contains("chest")) {
+            defaultInteract = PartyInfo::isChestInteractEnabled;
+            permission = PartyOverrides.PARTY_PROTECTION_INTERACT_CHEST;
+        } else if (blockName.contains("bench") && !blockName.contains("furniture")) {
             defaultInteract = PartyInfo::isBenchInteractEnabled;
-        else if (blockName.contains("door")) defaultInteract = PartyInfo::isDoorInteractEnabled;
-        else if (blockName.contains("chair") || blockName.contains("stool") || (blockName.contains("bench") && blockName.contains("furniture")))
+            permission = PartyOverrides.PARTY_PROTECTION_INTERACT_BENCH;
+        } else if (blockName.contains("door")) {
+            defaultInteract = PartyInfo::isDoorInteractEnabled;
+            permission = PartyOverrides.PARTY_PROTECTION_INTERACT_DOOR;
+        } else if (blockName.contains("chair") || blockName.contains("stool") || (blockName.contains("bench") && blockName.contains("furniture"))) {
             defaultInteract = PartyInfo::isChairInteractEnabled;
-        else if (blockName.contains("portal") || blockName.contains("teleporter"))
+            permission = PartyOverrides.PARTY_PROTECTION_INTERACT_CHAIR;
+        } else if (blockName.contains("portal") || blockName.contains("teleporter")) {
             defaultInteract = PartyInfo::isPortalInteractEnabled;
-        if (ignored || (playerRef != null && ClaimManager.getInstance().isAllowedToInteract(playerRef.getUuid(), player.getWorld().getName(), targetBlock.getX(), targetBlock.getZ(), defaultInteract))) {
+            permission = PartyOverrides.PARTY_PROTECTION_INTERACT_PORTAL;
+        }
+        if (ignored || (playerRef != null && ClaimManager.getInstance().isAllowedToInteract(playerRef.getUuid(), player.getWorld().getName(), targetBlock.getX(), targetBlock.getZ(), defaultInteract, permission))) {
             super.interactWithBlock(world, commandBuffer, type, context, itemInHand, targetBlock, cooldownHandler);
         }
     }
 
     @Override
     protected void simulateInteractWithBlock(@NonNullDecl InteractionType type, @NonNullDecl InteractionContext context, @NullableDecl ItemStack itemInHand, @NonNullDecl World world, @NonNullDecl Vector3i targetBlock) {
+        if (type == InteractionType.Primary || type == InteractionType.Secondary) {
+            super.simulateInteractWithBlock(type, context, itemInHand, world, targetBlock);
+            return;
+        }
+
         Ref<EntityStore> ref = context.getEntity();
         Store<EntityStore> store = ref.getStore();
         Player player = store.getComponent(ref, Player.getComponentType());
         PlayerRef playerRef = store.getComponent(ref, PlayerRef.getComponentType());
         Predicate<PartyInfo> defaultInteract = PartyInfo::isBlockInteractEnabled;
+        String permission = PartyOverrides.PARTY_PROTECTION_INTERACT;
         var blockName = world.getBlockType(targetBlock).getId().toLowerCase(Locale.ROOT);
         var ignored = false;
 
@@ -77,15 +93,23 @@ public class ClaimUseBlockInteraction extends UseBlockInteraction {
             if (blockName.contains(blocksThatIgnoreInteractRestriction.toLowerCase(Locale.ROOT))) ignored = true;
         }
 
-        if (blockName.contains("chest")) defaultInteract = PartyInfo::isChestInteractEnabled;
-        else if (blockName.contains("bench") && !blockName.contains("furniture"))
+        if (blockName.contains("chest")) {
+            defaultInteract = PartyInfo::isChestInteractEnabled;
+            permission = PartyOverrides.PARTY_PROTECTION_INTERACT_CHEST;
+        } else if (blockName.contains("bench") && !blockName.contains("furniture")) {
             defaultInteract = PartyInfo::isBenchInteractEnabled;
-        else if (blockName.contains("door")) defaultInteract = PartyInfo::isDoorInteractEnabled;
-        else if (blockName.contains("chair") || blockName.contains("stool") || (blockName.contains("bench") && blockName.contains("furniture")))
+            permission = PartyOverrides.PARTY_PROTECTION_INTERACT_BENCH;
+        } else if (blockName.contains("door")) {
+            defaultInteract = PartyInfo::isDoorInteractEnabled;
+            permission = PartyOverrides.PARTY_PROTECTION_INTERACT_DOOR;
+        } else if (blockName.contains("chair") || blockName.contains("stool") || (blockName.contains("bench") && blockName.contains("furniture"))) {
             defaultInteract = PartyInfo::isChairInteractEnabled;
-        else if (blockName.contains("portal") || blockName.contains("teleporter"))
+            permission = PartyOverrides.PARTY_PROTECTION_INTERACT_CHAIR;
+        } else if (blockName.contains("portal") || blockName.contains("teleporter")) {
             defaultInteract = PartyInfo::isPortalInteractEnabled;
-        if (ignored || (playerRef != null && ClaimManager.getInstance().isAllowedToInteract(playerRef.getUuid(), player.getWorld().getName(), targetBlock.getX(), targetBlock.getZ(), defaultInteract))) {
+            permission = PartyOverrides.PARTY_PROTECTION_INTERACT_PORTAL;
+        }
+        if (ignored || (playerRef != null && ClaimManager.getInstance().isAllowedToInteract(playerRef.getUuid(), player.getWorld().getName(), targetBlock.getX(), targetBlock.getZ(), defaultInteract, permission))) {
             super.simulateInteractWithBlock(type, context, itemInHand, world, targetBlock);
         }
     }

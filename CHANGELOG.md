@@ -6,6 +6,7 @@
 * Added a permission to limit how many claims a player can have, closes #132
 * Added a permission to increase chunk limit by playtime, closes #46
 * Increased bench cache time
+* Added member permission settings, closes #61 closes #76 closes #156
 
 # 1.0.26
 

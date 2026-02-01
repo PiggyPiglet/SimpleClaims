@@ -2,6 +2,7 @@ package com.buuz135.simpleclaims.interactions;
 
 import com.buuz135.simpleclaims.claim.ClaimManager;
 import com.buuz135.simpleclaims.claim.party.PartyInfo;
+import com.buuz135.simpleclaims.claim.party.PartyOverrides;
 import com.hypixel.hytale.codec.builder.BuilderCodec;
 import com.hypixel.hytale.component.CommandBuffer;
 import com.hypixel.hytale.component.Ref;
@@ -37,10 +38,10 @@ public class ClaimPickupBucketInteraction extends RefillContainerInteraction {
         var targetBlock = context.getTargetBlock();
         if (playerRef != null && targetBlock == null) {
             Vector3d playerPos = playerRef.getTransform().getPosition();
-            if (ClaimManager.getInstance().isAllowedToInteract(playerRef.getUuid(), player.getWorld().getName(), (int) playerPos.x, (int) playerPos.z, defaultInteract)) {
+            if (ClaimManager.getInstance().isAllowedToInteract(playerRef.getUuid(), player.getWorld().getName(), (int) playerPos.x, (int) playerPos.z, defaultInteract, PartyOverrides.PARTY_PROTECTION_INTERACT)) {
                 super.firstRun(type, context, cooldownHandler);
             }
-        } else if (playerRef != null && ClaimManager.getInstance().isAllowedToInteract(playerRef.getUuid(), player.getWorld().getName(), targetBlock.x, targetBlock.z, defaultInteract)) {
+        } else if (playerRef != null && ClaimManager.getInstance().isAllowedToInteract(playerRef.getUuid(), player.getWorld().getName(), targetBlock.x, targetBlock.z, defaultInteract, PartyOverrides.PARTY_PROTECTION_INTERACT)) {
             super.firstRun(type, context, cooldownHandler);
         }
     }
