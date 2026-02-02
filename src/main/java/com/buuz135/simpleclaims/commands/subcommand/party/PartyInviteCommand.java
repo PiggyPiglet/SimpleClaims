@@ -60,7 +60,6 @@ public class PartyInviteCommand extends AbstractAsyncCommand {
                             return;
                         }
                         Player invitedPlayerPlayer = store.getComponent(invitedPlayer.getReference(), Player.getComponentType());
-                        PlayerRef invintedPlayerPlayerRef = store.getComponent(invitedPlayer.getReference(), PlayerRef.getComponentType());
                         if (invitedPlayerPlayer == null) {
                             player.sendMessage(CommandMessages.PLAYER_NOT_FOUND);
                             return;
@@ -73,7 +72,7 @@ public class PartyInviteCommand extends AbstractAsyncCommand {
                             player.sendMessage(CommandMessages.PARTY_MEMBER_LIMIT_REACHED);
                             return;
                         }
-                        ClaimManager.getInstance().invitePlayerToParty(invintedPlayerPlayerRef, party, playerRef);
+                        ClaimManager.getInstance().invitePlayerToParty(invitedPlayer, party, playerRef);
                         player.sendMessage(CommandMessages.PARTY_INVITE_SENT.param("username", invitedPlayerPlayer.getDisplayName()));
                         invitedPlayer.sendMessage(CommandMessages.PARTY_INVITE_RECEIVED.param("party_name", party.getName()).param("username", player.getDisplayName()));
                     }

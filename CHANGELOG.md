@@ -8,6 +8,7 @@
 * Increased bench cache time
 * Added member permission settings, closes #61 closes #76 closes #156
 * Fixed changes not saved in the interaction GUI
+* Fixed not being able to invite players with a command if they are in another world closes #165
 
 # 1.0.26
 
