@@ -25,6 +25,8 @@ import java.time.LocalDateTime;
 import java.util.*;
 import java.util.List;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 import java.util.function.Predicate;
 import java.util.logging.Level;
 
@@ -44,6 +46,7 @@ public class ClaimManager {
     private Set<UUID> adminOverrides;
     private DatabaseManager databaseManager;
     private HashMap<String, LongSet> mapUpdateQueue;
+    private ExecutorService executorService;
 
     public static ClaimManager getInstance() {
         return INSTANCE;
@@ -61,6 +64,7 @@ public class ClaimManager {
         this.adminOverrides = new HashSet<>();
         this.databaseManager = new DatabaseManager(logger);
         this.mapUpdateQueue = new HashMap<>();
+        this.executorService = Executors.newFixedThreadPool(4);
 
         FileUtils.ensureMainDirectory();
 
@@ -117,19 +121,19 @@ public class ClaimManager {
     }
 
     public void saveParty(PartyInfo partyInfo) {
-        this.databaseManager.saveParty(partyInfo);
+        this.runAsync(() -> this.databaseManager.saveParty(partyInfo));
     }
 
     private void saveClaim(String dimension, ChunkInfo chunkInfo) {
-        this.databaseManager.saveClaim(dimension, chunkInfo);
+        this.runAsync(() -> this.databaseManager.saveClaim(dimension, chunkInfo));
     }
 
     private void saveNameCache(UUID uuid, String name, long lastSeen, float playTime) {
-        this.databaseManager.saveNameCache(uuid, name, lastSeen, playTime);
+        this.runAsync(() -> this.databaseManager.saveNameCache(uuid, name, lastSeen, playTime));
     }
 
     private void saveAdminOverride(UUID uuid) {
-        this.databaseManager.saveAdminOverride(uuid);
+        this.runAsync(() -> this.databaseManager.saveAdminOverride(uuid));
     }
 
     public void addParty(PartyInfo partyInfo){
@@ -212,7 +216,7 @@ public class ClaimManager {
         chunkDimension.put(ChunkInfo.formatCoordinates(chunkX, chunkZ), chunkInfo);
         chunkInfo.setCreatedTracked(new ModifiedTracking(playerRef.getUuid(), owner.getDisplayName(), LocalDateTime.now().toString()));
         partyClaimCounts.merge(partyInfo.getId(), 1, Integer::sum);
-        this.databaseManager.saveClaim(dimension, chunkInfo);
+        this.saveClaim(dimension, chunkInfo);
         return chunkInfo;
     }
 
@@ -236,7 +240,7 @@ public class ClaimManager {
             ChunkInfo removed = chunkMap.remove(ChunkInfo.formatCoordinates(chunkX, chunkZ));
             if (removed != null) {
                 partyClaimCounts.computeIfPresent(removed.getPartyOwner(), (k, v) -> v > 1 ? v - 1 : null);
-                databaseManager.deleteClaim(dimension, chunkX, chunkZ);
+                this.runAsync(() -> databaseManager.deleteClaim(dimension, chunkX, chunkZ));
             }
         }
     }
@@ -257,7 +261,7 @@ public class ClaimManager {
         var existing = this.playerNameTracker.getNamesMap().get(uuid);
         float playTime = existing != null ? existing.getPlayTime() : 0;
         this.playerNameTracker.setPlayerName(uuid, name, lastSeen, playTime);
-        this.databaseManager.saveNameCache(uuid, name, lastSeen, playTime);
+        this.saveNameCache(uuid, name, lastSeen, playTime);
     }
 
     public void setPlayerPlayTime(UUID uuid, float playTime) {
@@ -265,7 +269,7 @@ public class ClaimManager {
         if (existing != null) {
             if (Math.abs(existing.getPlayTime() - playTime) < 0.01) return;
             this.playerNameTracker.setPlayerName(uuid, existing.getName(), existing.getLastSeen(), playTime);
-            this.databaseManager.saveNameCache(uuid, existing.getName(), existing.getLastSeen(), playTime);
+            this.saveNameCache(uuid, existing.getName(), existing.getLastSeen(), playTime);
         }
     }
 
@@ -301,7 +305,7 @@ public class ClaimManager {
         party.addMember(player.getUuid());
         this.playerToParty.put(player.getUuid(), party.getId());
         this.partyInvites.remove(player.getUuid());
-        databaseManager.saveParty(party);
+        this.saveParty(party);
         return invite;
     }
 
@@ -321,7 +325,7 @@ public class ClaimManager {
             playerToParty.remove(player.getUuid());
             player.sendMessage(CommandMessages.PARTY_LEFT);
         }
-        databaseManager.saveParty(partyInfo);
+        this.saveParty(partyInfo);
     }
 
     public void disbandParty(PartyInfo partyInfo) {
@@ -332,25 +336,25 @@ public class ClaimManager {
         this.chunks.forEach((dimension, chunkInfos) -> chunkInfos.values().removeIf(chunkInfo -> {
             boolean matches = chunkInfo.getPartyOwner().equals(partyInfo.getId());
             if (matches) {
-                databaseManager.deleteClaim(dimension, chunkInfo.getChunkX(), chunkInfo.getChunkZ());
+                this.runAsync(() -> databaseManager.deleteClaim(dimension, chunkInfo.getChunkX(), chunkInfo.getChunkZ()));
             }
             return matches;
         }));
         partyClaimCounts.remove(partyInfo.getId());
 
         this.parties.remove(partyInfo.getId().toString());
-        databaseManager.deleteParty(partyInfo.getId());
+        this.runAsync(() -> databaseManager.deleteParty(partyInfo.getId()));
     }
 
     public void removeAdminOverride(UUID uuid) {
         if (this.adminOverrides.remove(uuid)) {
-            databaseManager.deleteAdminOverride(uuid);
+            this.runAsync(() -> databaseManager.deleteAdminOverride(uuid));
         }
     }
 
     public void addAdminOverride(UUID uuid) {
         if (this.adminOverrides.add(uuid)) {
-            databaseManager.saveAdminOverride(uuid);
+            this.saveAdminOverride(uuid);
         }
     }
 
@@ -430,5 +434,9 @@ public class ClaimManager {
             logger.at(Level.INFO).log("Disbanding inactive party: " + party.getName() + " (" + party.getId() + ")");
             disbandParty(party);
         }
+    }
+
+    public void runAsync(Runnable runnable) {
+        this.executorService.submit(runnable);
     }
 }
