@@ -55,6 +55,11 @@ public class SimpleClaimsExpansion extends PlaceholderExpansion {
     }
 
     @Override
+    public boolean persist() {
+        return true;
+    }
+
+    @Override
     public @Nullable String onPlaceholderRequest(final PlayerRef player, @NotNull final String params) {
         switch (params) {
             case "parties_total":
