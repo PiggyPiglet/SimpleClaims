@@ -112,28 +112,6 @@ public class SimpleClaimsExpansion extends PlaceholderExpansion {
                     return String.valueOf(party.getOwner());
                 case "party_owner_name":
                     return CLAIMS.getPlayerNameTracker().getPlayerName(party.getOwner());
-//                case "party_portalinteraction":
-//                    return PlaceholderAPI.booleanValue(party.isPortalInteractEnabled());
-//                case "party_pvp":
-//                    return PlaceholderAPI.booleanValue(party.isPVPEnabled());
-//                case "party_blockplace":
-//                    return PlaceholderAPI.booleanValue(party.isBlockPlaceEnabled());
-//                case "party_blockinteract":
-//                    return PlaceholderAPI.booleanValue(party.isBlockInteractEnabled());
-//                case "party_blockbreak":
-//                    return PlaceholderAPI.booleanValue(party.isBlockBreakEnabled());
-//                case "party_allowentry":
-//                    return PlaceholderAPI.booleanValue(party.isAllowEntryEnabled());
-//                case "party_benchinteract":
-//                    return PlaceholderAPI.booleanValue(party.isBenchInteractEnabled());
-//                case "party_chairinteract":
-//                    return PlaceholderAPI.booleanValue(party.isChairInteractEnabled());
-//                case "party_chestinteract":
-//                    return PlaceholderAPI.booleanValue(party.isChestInteractEnabled());
-//                case "party_doorinteract":
-//                    return PlaceholderAPI.booleanValue(party.isDoorInteractEnabled());
-//                case "party_friendlyfire":
-//                    return PlaceholderAPI.booleanValue(party.isFriendlyFireEnabled());
                 case "party_allies_total":
                     return String.valueOf(party.getPartyAllies().size());
                 case "party_allies_uuids":
@@ -183,8 +161,6 @@ public class SimpleClaimsExpansion extends PlaceholderExpansion {
                 return result == null ? null : PlaceholderAPI.booleanValue(result);
             }
         }
-
-
 
         return null;
     }
