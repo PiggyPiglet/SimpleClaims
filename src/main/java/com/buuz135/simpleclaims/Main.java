@@ -10,6 +10,7 @@ import com.buuz135.simpleclaims.interactions.ClaimPickupBucketInteraction;
 import com.buuz135.simpleclaims.interactions.ClaimPlaceBucketInteraction;
 import com.buuz135.simpleclaims.interactions.ClaimUseBlockInteraction;
 import com.buuz135.simpleclaims.map.SimpleClaimsWorldMapProvider;
+import com.buuz135.simpleclaims.papi.PAPIIntegration;
 import com.buuz135.simpleclaims.systems.events.*;
 import com.buuz135.simpleclaims.systems.tick.*;
 import com.buuz135.simpleclaims.util.PartyInactivityThread;
@@ -114,6 +115,11 @@ public class Main extends JavaPlugin {
 
         partyInactivityTickingSystem = new PartyInactivityThread();
         partyInactivityTickingSystem.start();
+    }
+
+    @Override
+    protected void start() {
+        PAPIIntegration.register();
     }
 
     @Override

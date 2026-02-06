@@ -15,7 +15,8 @@
     "Hytale:InteractionModule": "*"
   },
   "OptionalDependencies": {
-    "LuckPerms:LuckPerms": "*"
+    "LuckPerms:LuckPerms": "*",
+    "HelpChat:PlaceholderAPI": "*"
   },
   "DisabledByDefault": false,
   "Main": "${entry_point}",
